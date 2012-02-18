@@ -1,15 +1,21 @@
 package us.flipp.moding;
 
 
+import android.content.Context;
 import android.graphics.Canvas;
 
 public class Mode {
 
-    Mode pendMode;
-
+    private Mode pendMode;
+    private Context context;
 
     static public enum ModeAction {
         NoAction, ChangeMode, Exit
+    }
+
+    public void setup(Context context)
+    {
+        this.context = context;
     }
 
     public ModeAction tick(int timespan) {
@@ -17,6 +23,11 @@ public class Mode {
     }
 
     public void redraw(Canvas canvas) {
+
+    }
+
+    // TODO: erase
+    public void handleButton() {
 
     }
 

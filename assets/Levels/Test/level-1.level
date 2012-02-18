@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Level>
+    <Name>Test Level 1</Name>
+    <Author>Bill</Author>
+    <Size width="2" height="1" />
+    <V x="0" y="0" color="blue" />
+    <V x="1" y="0" color="red" />
+</Level>

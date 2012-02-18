@@ -30,7 +30,7 @@ public class GameThread extends Thread {
 
     @Override
     public void run() {
-        Log.e(this.TAG, "Hmm game started at least");
+        Log.d(this.TAG, "Hmm game started at least");
 
         while (running) {
             long update_start = System.nanoTime();

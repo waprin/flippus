@@ -13,7 +13,8 @@ public class GameStateMachine {
 
     public GameStateMachine(Context context) {
         this.context = context;
-        this.mode = new GameMode();
+        this.mode = new ModeGame();
+        this.mode.setup(this.context);
     }
 
 
@@ -26,8 +27,11 @@ public class GameStateMachine {
     }
 
     public void redraw(Canvas canvas) {
-        Log.e(this.TAG, "TESTING IT GOT HERE");
         mode.redraw(canvas);
+    }
+
+    public void handleButton() {
+        mode.handleButton();
     }
 
 }

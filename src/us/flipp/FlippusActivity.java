@@ -1,16 +1,18 @@
 package us.flipp;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import us.flipp.moding.GameStateMachine;
+import android.view.View.OnClickListener;
 
 public class FlippusActivity extends Activity
 {
-    private GameView mGameView;
-    private GameStateMachine mGame;
+    private GameView gameView;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -24,7 +26,15 @@ public class FlippusActivity extends Activity
                              WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         */
-        mGameView = new GameView(this);
-        setContentView(mGameView);
+        setContentView(R.layout.main);
+        gameView = (GameView) findViewById(R.id.game_view_id);
+        findViewById(R.id.next_level_button).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                gameView.buttonPressed();
+            }
+        }
+
+        );
     }
 }

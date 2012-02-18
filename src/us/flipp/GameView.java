@@ -1,10 +1,15 @@
 package us.flipp;
 
 import android.content.Context;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import org.apache.http.cookie.Cookie;
+import org.w3c.dom.Attr;
 import us.flipp.moding.GameStateMachine;
+
+import java.text.AttributedCharacterIterator;
 import java.util.concurrent.Semaphore;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
@@ -18,8 +23,27 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     public GameView(Context context) {
         super(context);
+        init(context);
+    }
+
+    public GameView(Context context, AttributeSet attributeSet)
+    {
+        super(context, attributeSet);
+        init(context);
+    }
+
+    public GameView(Context context, AttributeSet attributeSet, int defStyle)
+    {
+        super(context, attributeSet, defStyle);
+        init(context);
+    }
+
+    private void init(Context context)
+    {
         requestFocus();
         this.context = context;
+        Log.d(TAG, "initializing the game view");
+        Thread.dumpStack();
         gameStateMachine = new GameStateMachine(context);
 
         SurfaceHolder holder = getHolder();
@@ -29,9 +53,20 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        Log.e(this.TAG, "Surface CREATED BITCH");
+        Log.d(this.TAG, "Surface created");
         gameThread = new GameThread(getHolder(), context, gameStateMachine, semaphore);
         gameThread.start();
+    }
+
+    public void buttonPressed() {
+        Log.d(TAG, "button pressed");
+        try {
+            semaphore.acquire();
+            gameStateMachine.handleButton();
+            semaphore.release();
+        } catch (InterruptedException e) {
+            Log.e("buttonPressed", "sempahore interrupted");
+        }
     }
 
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
