@@ -50,6 +50,10 @@ public class ModeGame extends Mode {
         blackRedraw.setARGB(255, 0, 0, 0);
         canvas.drawRect(new Rect(0, 0, canvas.getWidth(), canvas.getHeight()), blackRedraw);
 
+        int widthBorder = canvas.getWidth() / 10;
+        int heightBorder = canvas.getHeight() / 10;
+
+
         Paint paint = new Paint();
         paint.setARGB(255, 255, 0, 0);
         int halfX = canvas.getWidth() / 2;
