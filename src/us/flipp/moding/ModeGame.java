@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 import org.apache.http.cookie.Cookie;
+import us.flipp.animation.GameDrawer;
 import us.flipp.simulation.World;
 
 import java.io.IOException;
@@ -16,6 +17,8 @@ public class ModeGame extends Mode {
     static private String TAG = ModeGame.class.getName();
     private Progress progress;
     private World world;
+
+    private GameDrawer gameDrawer;
 
     @Override
     public void setup(Context context) {
