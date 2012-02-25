@@ -22,6 +22,9 @@ public class ModeGame extends Mode {
 
     @Override
     public void setup(Context context) {
+
+        gameDrawer = new GameDrawer();
+
         Log.d(TAG, "setting up game world with context " + context);
         this.progress = new Progress(context);
         try {
