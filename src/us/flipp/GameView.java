@@ -3,8 +3,10 @@ package us.flipp;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import org.apache.http.cookie.Cookie;
 import org.w3c.dom.Attr;
 import us.flipp.moding.GameStateMachine;
@@ -50,7 +52,23 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         holder.addCallback(this);
 
         this.semaphore = new Semaphore(1);
+
+        setOnTouchListener(mTouchListener);
     }
+
+    private OnTouchListener mTouchListener = new OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            try {
+                semaphore.acquire();
+                gameStateMachine.HandleTouch(motionEvent);
+                semaphore.release();
+            } catch (InterruptedException e) {
+                Log.e(TAG, "Semaphore interrupted");
+            }
+            return true;
+        }
+    };
 
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         Log.d(this.TAG, "Surface created");

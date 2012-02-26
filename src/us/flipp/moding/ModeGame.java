@@ -1,10 +1,7 @@
 package us.flipp.moding;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.*;
 import android.util.Log;
 import org.apache.http.cookie.Cookie;
 import us.flipp.animation.GameDrawer;
@@ -22,9 +19,7 @@ public class ModeGame extends Mode {
     private World world;
 
     private HexBoard hexBoard;
-
     private GameDrawer gameDrawer;
-    private int colors[];
 
     @Override
     public void setup(Context context) {
@@ -35,13 +30,8 @@ public class ModeGame extends Mode {
         } catch (IOException e) {
             Log.e(TAG, "Caught exception while loading world: " + e.getMessage());
         }
-        this.gameDrawer = new GameDrawer(this.world);
-        this.colors = new int[HexBoard.TOTAL_HEXES];
-        int[] random_colors = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.GREEN};
-        Random random = new Random();
-        for (int i = 0; i < colors.length; i++) {
-            colors[i] = random_colors[random.nextInt(random_colors.length)];
-        }
+        this.gameDrawer = new GameDrawer();
+        this.hexBoard = new HexBoard();
     }
 
     @Override
@@ -56,6 +46,12 @@ public class ModeGame extends Mode {
     }
 
     @Override
+    public void handleTap(int x, int y) {
+        hexBoard.touchSelected(x, y);
+
+    }
+
+    @Override
     public Mode teardown() {
         return super.teardown();
     }
@@ -63,8 +59,8 @@ public class ModeGame extends Mode {
     @Override
     public void redraw(Canvas canvas) {
         super.redraw(canvas);
-        this.hexBoard = new HexBoard();
-        hexBoard.initialize(canvas);
-        gameDrawer.drawBoard(canvas, hexBoard, colors);
+
+        hexBoard.updateCanvas(canvas);
+        gameDrawer.drawBoard(canvas, hexBoard);
     }
 }

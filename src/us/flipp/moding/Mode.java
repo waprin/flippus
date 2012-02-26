@@ -26,6 +26,10 @@ public class Mode {
 
     }
 
+    public void handleTap(int x, int y) {
+
+    }
+
     // TODO: erase
     public void handleButton() {
 

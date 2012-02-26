@@ -3,6 +3,7 @@ package us.flipp.moding;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.Log;
+import android.view.MotionEvent;
 
 public class GameStateMachine {
 
@@ -15,6 +16,15 @@ public class GameStateMachine {
         this.context = context;
         this.mode = new ModeGame();
         this.mode.setup(this.context);
+    }
+
+    public void HandleTouch(MotionEvent event) {
+        Log.w(TAG, "HandleTouch: begin ... ");
+        if (event.getAction() == MotionEvent.ACTION_UP)
+        {
+            Log.w(TAG, "HandleTouch: motion up");
+            mode.handleTap((int)event.getX(), (int)event.getY());
+        }
     }
 
 

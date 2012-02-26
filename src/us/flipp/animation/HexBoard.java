@@ -1,29 +1,63 @@
 package us.flipp.animation;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-
+import android.nfc.Tag;
+import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class HexBoard {
+    private static final String TAG = HexBoard.class.getName();
 
     public static int[] rowCounts = {3, 4, 5, 4 ,3};
     public static final int ROW_MAX = 5;
     public static final int TOTAL_HEXES = 19;
 
+    private int selected;
+
+    private int[] colors;
     private Hexagon[] hexagons;
+
+    public Bitmap collisionBitmap;
+    private Canvas collisionCanvas;
+
+    public int getColor(int index) {
+        return colors[index];
+    }
+
+    public Canvas getCollisionCanvas() {
+        return this.collisionCanvas;
+    }
+
+    public HexBoard() {
+        this.colors = new int[HexBoard.TOTAL_HEXES];
+        int[] random_colors = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.GREEN};
+        Random random = new Random();
+        for (int i = 0; i < colors.length; i++) {
+            colors[i] = random_colors[random.nextInt(random_colors.length)];
+        }
+        selected = -1;
+    }
 
     public Hexagon[] getHexagons() {
             return this.hexagons;
     }
 
-    public HexBoard() {
-
+    public int getSelected() {
+        return selected;
     }
 
-    public void initialize(Canvas canvas) {
+    public void touchSelected(int x, int y) {
+        selected = Color.alpha(collisionBitmap.getPixel(x, y));
+        Log.w(TAG, "touch selected selected index " + selected);
+    }
+
+    public void updateCanvas(Canvas canvas) {
+        collisionBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
+        collisionCanvas = new Canvas(collisionBitmap);
 
         hexagons = new Hexagon[TOTAL_HEXES];
 
