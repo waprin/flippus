@@ -16,59 +16,40 @@ public class HexBoard {
     public static final int ROW_MAX = 5;
     public static final int TOTAL_HEXES = 19;
 
-    private int selected;
-
     private int[] colors;
     private Hexagon[] hexagons;
 
-    public Bitmap collisionBitmap;
-    private Canvas collisionCanvas;
+    public static int[] RANDOM_COLORS = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.GREEN};
 
     public int getColor(int index) {
         return colors[index];
     }
 
-    public Canvas getCollisionCanvas() {
-        return this.collisionCanvas;
-    }
-
     public HexBoard() {
         this.colors = new int[HexBoard.TOTAL_HEXES];
-        int[] random_colors = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.GREEN};
         Random random = new Random();
         for (int i = 0; i < colors.length; i++) {
-            colors[i] = random_colors[random.nextInt(random_colors.length)];
+            colors[i] = RANDOM_COLORS[random.nextInt(RANDOM_COLORS.length)];
         }
-        selected = -1;
     }
 
     public Hexagon[] getHexagons() {
             return this.hexagons;
     }
 
-    public int getSelected() {
-        return selected;
-    }
+    public void updateSize(int width, int height) {
 
-    public void touchSelected(int x, int y) {
-        selected = Color.alpha(collisionBitmap.getPixel(x, y));
-        Log.w(TAG, "touch selected selected index " + selected);
-    }
-
-    public void updateCanvas(Canvas canvas) {
-        collisionBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
-        collisionCanvas = new Canvas(collisionBitmap);
+        Log.e(TAG, "update size");
 
         hexagons = new Hexagon[TOTAL_HEXES];
 
-        int spaceWidthMargin = canvas.getWidth() / 10;
+        int spaceWidthMargin = width / 10;
         int boardLeft = spaceWidthMargin;
-        int boardWidth = (canvas.getWidth() - spaceWidthMargin) - spaceWidthMargin;
+        int boardWidth = (width - spaceWidthMargin) - spaceWidthMargin;
 
-        int spaceHeightMargin = canvas.getHeight() / 10;
+        int spaceHeightMargin = height / 10;
         int boardTop = spaceHeightMargin;
-        int boardHeight = (canvas.getHeight() - spaceHeightMargin) - spaceHeightMargin;
-
+        int boardHeight = (height - spaceHeightMargin) - spaceHeightMargin;
 
         int hexWidth = boardWidth / ROW_MAX;
         int hexHeight = boardHeight / rowCounts.length;

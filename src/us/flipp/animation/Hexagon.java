@@ -1,5 +1,6 @@
 package us.flipp.animation;
 
+import android.graphics.Path;
 import android.graphics.Point;
 
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ public class Hexagon {
 
     private int heightStrokeSpan;
     private int widthStrokeSpan;
+
+    private Path path;
 
     public Hexagon(int xOrigin, int yOrigin, int width, int height) {
         this.xOrigin = xOrigin;
@@ -30,6 +33,23 @@ public class Hexagon {
         points.add(new Point(xOrigin, yOrigin + (3* heightStrokeSpan)));
         points.add(new Point(xOrigin - widthStrokeSpan, yOrigin + (2 * heightStrokeSpan)));
         points.add(new Point(xOrigin - widthStrokeSpan, yOrigin + heightStrokeSpan));
+
+        initPath();
+    }
+
+    public Path getPath() {
+        return path;
+    }
+
+    private void initPath() {
+        path = new Path();
+        List<Point> points =  getPoints();
+        path.moveTo(points.get(0).x, points.get(0).y);
+
+        for (int i = 1; i < points.size(); i++) {
+            path.lineTo(points.get(i).x, points.get(i).y);
+        }
+        path.lineTo(points.get(0).x, points.get(0).y);
     }
 
     public Point getCenter() {
@@ -40,14 +60,6 @@ public class Hexagon {
 
     public List<Point> getPoints() {
         return points;
-    }
-
-    public int getHeightStrokeSpan() {
-        return heightStrokeSpan;
-    }
-
-    public int getWidthStrokeSpan() {
-        return widthStrokeSpan;
     }
 }
 

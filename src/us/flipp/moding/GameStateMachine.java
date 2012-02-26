@@ -19,10 +19,10 @@ public class GameStateMachine {
     }
 
     public void HandleTouch(MotionEvent event) {
-        Log.w(TAG, "HandleTouch: begin ... ");
+        Log.d(TAG, "HandleTouch: begin ... ");
         if (event.getAction() == MotionEvent.ACTION_UP)
         {
-            Log.w(TAG, "HandleTouch: motion up");
+            Log.d(TAG, "HandleTouch: motion up");
             mode.handleTap((int)event.getX(), (int)event.getY());
         }
     }
@@ -44,4 +44,7 @@ public class GameStateMachine {
         mode.handleButton();
     }
 
+    public void screenChanged(int width, int height) {
+        mode.screenChanged(width, height);
+    }
 }

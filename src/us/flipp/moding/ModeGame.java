@@ -18,8 +18,18 @@ public class ModeGame extends Mode {
     private Progress progress;
     private World world;
 
-    private HexBoard hexBoard;
     private GameDrawer gameDrawer;
+
+    private int screenWidth;
+    private int screenHeight;
+
+    @Override
+    public void screenChanged(int width, int height) {
+        Log.e(TAG, "NICE! Screen changed.");
+        screenHeight = height;
+        screenWidth = width;
+        gameDrawer = new GameDrawer(width, height);
+    }
 
     @Override
     public void setup(Context context) {
@@ -30,8 +40,6 @@ public class ModeGame extends Mode {
         } catch (IOException e) {
             Log.e(TAG, "Caught exception while loading world: " + e.getMessage());
         }
-        this.gameDrawer = new GameDrawer();
-        this.hexBoard = new HexBoard();
     }
 
     @Override
@@ -47,8 +55,7 @@ public class ModeGame extends Mode {
 
     @Override
     public void handleTap(int x, int y) {
-        hexBoard.touchSelected(x, y);
-
+        gameDrawer.touchSelected(x, y);
     }
 
     @Override
@@ -59,8 +66,6 @@ public class ModeGame extends Mode {
     @Override
     public void redraw(Canvas canvas) {
         super.redraw(canvas);
-
-        hexBoard.updateCanvas(canvas);
-        gameDrawer.drawBoard(canvas, hexBoard);
+        gameDrawer.drawBoard(canvas);
     }
 }

@@ -9,6 +9,10 @@ public class Mode {
     private Mode pendMode;
     private Context context;
 
+    public void screenChanged(int width, int height) {
+
+    }
+
     static public enum ModeAction {
         NoAction, ChangeMode, Exit
     }

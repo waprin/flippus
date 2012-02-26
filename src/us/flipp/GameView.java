@@ -87,7 +87,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+        try {
+            semaphore.acquire();;
+            gameStateMachine.screenChanged(width, height);
+            semaphore.release();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "surfaceChanged(): semaphore interrupted");
+        }
     }
 
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
