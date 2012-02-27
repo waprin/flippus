@@ -3,11 +3,11 @@ package us.flipp.animation;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.nfc.Tag;
 import android.util.Log;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+
+import java.util.*;
 
 public class HexBoard {
     private static final String TAG = HexBoard.class.getName();
@@ -16,21 +16,43 @@ public class HexBoard {
     public static final int ROW_MAX = 5;
     public static final int TOTAL_HEXES = 19;
 
-    private int[] colors;
+    private Map<Point, List<Integer>> pointMaps;
+
     private Hexagon[] hexagons;
 
-    public static int[] RANDOM_COLORS = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.GREEN};
+    public int getClosesPoint(int x, int y) {
+        Log.d(TAG, "getClosestPoint: " + x + " " + y);
 
-    public int getColor(int index) {
-        return colors[index];
+        Set<Point> points = pointMaps.keySet();
+        int minDistance = 10000000;
+        int i = 0;
+        int index = i;
+        for (Point p : points) {
+            int xdiff = p.x - x;
+            int ydiff = p.y - y;
+            xdiff = Math.abs(xdiff);
+            ydiff = Math.abs(ydiff);
+            int distance = xdiff + ydiff;
+            if (distance < minDistance) {
+                minDistance = distance;
+                index = i;
+            }
+            i++;
+        }
+        Log.d(TAG, "closes point found " + index);
+        return index;
     }
 
-    public HexBoard() {
-        this.colors = new int[HexBoard.TOTAL_HEXES];
-        Random random = new Random();
-        for (int i = 0; i < colors.length; i++) {
-            colors[i] = RANDOM_COLORS[random.nextInt(RANDOM_COLORS.length)];
+    public Point getPointByIndex(int index) {
+        Set<Point> points = pointMaps.keySet();
+        int i = 0;
+        for (Point p : points) {
+            if (i == index) {
+                return p;
+            }
+            i++;
         }
+        return null;
     }
 
     public Hexagon[] getHexagons() {
@@ -59,6 +81,8 @@ public class HexBoard {
 
         int index = 0;
 
+        pointMaps = new HashMap<Point, List<Integer>>();
+
         for (int i = 0; i < rowCounts.length; i++) {
             int count = rowCounts[i];
             int diff = ROW_MAX - count;
@@ -68,6 +92,16 @@ public class HexBoard {
                 int leftOffset = outerLeftOffset + (j * (hexLineWidth * 2));
                 Hexagon hexagon = new Hexagon(leftOffset, topOffset, hexWidth, hexHeight);
                 hexagons[index] = hexagon;
+
+                for (Point p : hexagon.getPoints()) {
+                    List<Integer> l = pointMaps.get(p);
+                    if (l == null) {
+                        l = new ArrayList<Integer>();
+                        pointMaps.put(p, l);
+                    }
+                    l.add(index);
+                }
+
                 index++;
             }
         }

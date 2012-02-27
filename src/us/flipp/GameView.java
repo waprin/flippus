@@ -45,7 +45,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         requestFocus();
         this.context = context;
         Log.d(TAG, "initializing the game view");
-        Thread.dumpStack();
         gameStateMachine = new GameStateMachine(context);
 
         SurfaceHolder holder = getHolder();
@@ -54,6 +53,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         this.semaphore = new Semaphore(1);
 
         setOnTouchListener(mTouchListener);
+    }
+
+    public String getButtonText() {
+        return gameStateMachine.getButtonText();
     }
 
     private OnTouchListener mTouchListener = new OnTouchListener() {

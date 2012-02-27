@@ -7,12 +7,15 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import us.flipp.moding.GameStateMachine;
 import android.view.View.OnClickListener;
 
 public class FlippusActivity extends Activity
 {
     private GameView gameView;
+
+    private Button button;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -28,10 +31,16 @@ public class FlippusActivity extends Activity
         */
         setContentView(R.layout.main);
         gameView = (GameView) findViewById(R.id.game_view_id);
-        findViewById(R.id.next_level_button).setOnClickListener(new OnClickListener() {
+
+        button = (Button) findViewById(R.id.next_level_button);
+
+
+        button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 gameView.buttonPressed();
+
+                button.setText("Confirm?");
             }
         }
 

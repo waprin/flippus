@@ -2,11 +2,14 @@ package us.flipp.animation;
 
 import android.graphics.Path;
 import android.graphics.Point;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Hexagon {
+
+    private static final String TAG = Hexagon.class.getName();
 
     private ArrayList<Point> points;
 

@@ -22,6 +22,10 @@ public class Mode {
         this.context = context;
     }
 
+    public String getButtonText() {
+        return "Default";
+    }
+
     public ModeAction tick(int timespan) {
         return ModeAction.NoAction;
     }

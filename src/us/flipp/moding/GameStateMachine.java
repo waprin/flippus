@@ -27,7 +27,6 @@ public class GameStateMachine {
         }
     }
 
-
     public boolean tick(int timespan) {
         Mode.ModeAction action = mode.tick(timespan);
         if (action == Mode.ModeAction.ChangeMode) {
@@ -46,5 +45,9 @@ public class GameStateMachine {
 
     public void screenChanged(int width, int height) {
         mode.screenChanged(width, height);
+    }
+
+    public String getButtonText() {
+        return mode.getButtonText();
     }
 }
