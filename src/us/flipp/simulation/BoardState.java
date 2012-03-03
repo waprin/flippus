@@ -7,39 +7,14 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class BoardState {
 
     private static final String TAG = BoardState.class.getName();
 
-    public void suggestIntersection(int index, Player currentPlayer) {
-        Log.d(TAG, "suggesting intersection " + index + " for player " + currentPlayer);
-        intersections.add(new Intersection(index, currentPlayer, true));
-    }
-
-    public void confirmVillage() {
-        for (Intersection i : intersections) {
-            if (i.suggested) {
-                i.suggested = false;
-            }
-        }
-    }
-
-    public enum BoardMode {
-        NONE,
-        BUILDING
-    }
-
-    public BoardMode getMode() {
-        return mode;
-    }
-
-    public void setMode(BoardMode mode) {
-        this.mode = mode;
-    }
-
-    public BoardMode mode;
+    private Map<Player, Map<HexColor, Integer>> cards;
 
     public enum HexColor {
         BLUE,
@@ -49,44 +24,26 @@ public class BoardState {
     }
 
     static private class HexState {
-        public int getIndex() {
-            return index;
-        }
-
-        public void setIndex(int index) {
-            this.index = index;
-        }
-
-        private int index;
-
-        public HexColor getHexColor() {
-            return hexColor;
-        }
-
-        public void setHexColor(HexColor hexColor) {
-            this.hexColor = hexColor;
-        }
-
-        private HexColor hexColor;
-
-        public HexState() {
-
-        }
+        public int index;
+        public HexColor hexColor;
+        public int value;
     }
 
     public class Intersection {
         public int index;
         public Player player;
-        public Intersection(int index, Player player, boolean suggested) {
+        public Intersection(int index, Player player) {
             this.index = index;
             this.player = player;
-            this.suggested = suggested;
         }
-        public boolean suggested;
     }
 
     public HexColor getColor(int index) {
-        return hexStates.get(index).getHexColor();
+        return hexStates.get(index).hexColor;
+    }
+
+    public int getValue(int index) {
+        return hexStates.get(index).value;
     }
 
     private List<HexState> hexStates;
@@ -96,8 +53,11 @@ public class BoardState {
         return intersections;
     }
 
+   public void buildVillage(int index, Player player) {
+       intersections.add(new Intersection(index, player));
+   }
+
    public BoardState() {
-       this.mode = BoardMode.NONE;
        int totalCells = HexBoard.TOTAL_HEXES;
        hexStates = new ArrayList<HexState>();
 
@@ -108,8 +68,9 @@ public class BoardState {
 
        for (int i = 0; i < totalCells; i++) {
            HexState hexState = new HexState();
-           hexState.setHexColor(HexColor.values()[rand.nextInt(length)]);
-           hexState.setIndex(i);
+           hexState.hexColor = HexColor.values()[rand.nextInt(length)];
+           hexState.index = i;
+           hexState.value = rand.nextInt(13);
            hexStates.add(hexState);
        }
    }

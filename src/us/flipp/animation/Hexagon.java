@@ -58,7 +58,7 @@ public class Hexagon {
     public Point getCenter() {
         int height = heightStrokeSpan * 3;
         int width =  widthStrokeSpan * 2;
-        return new Point(xOrigin + (width / 2), yOrigin + (height / 2));
+        return new Point(xOrigin, yOrigin + (height / 2));
     }
 
     public List<Point> getPoints() {

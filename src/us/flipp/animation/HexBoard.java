@@ -1,10 +1,6 @@
 package us.flipp.animation;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Point;
-import android.nfc.Tag;
 import android.util.Log;
 
 import java.util.*;
@@ -16,14 +12,15 @@ public class HexBoard {
     public static final int ROW_MAX = 5;
     public static final int TOTAL_HEXES = 19;
 
-    private Map<Point, List<Integer>> pointMaps;
+    private Map<Point, List<Integer>> pointHexNeighorMap;
+    private ArrayList<Point> sortedPoints;
 
     private Hexagon[] hexagons;
 
     public int getClosesPoint(int x, int y) {
         Log.d(TAG, "getClosestPoint: " + x + " " + y);
 
-        Set<Point> points = pointMaps.keySet();
+        Set<Point> points = pointHexNeighorMap.keySet();
         int minDistance = 10000000;
         int i = 0;
         int index = i;
@@ -44,15 +41,7 @@ public class HexBoard {
     }
 
     public Point getPointByIndex(int index) {
-        Set<Point> points = pointMaps.keySet();
-        int i = 0;
-        for (Point p : points) {
-            if (i == index) {
-                return p;
-            }
-            i++;
-        }
-        return null;
+        return sortedPoints.get(index);
     }
 
     public Hexagon[] getHexagons() {
@@ -81,7 +70,24 @@ public class HexBoard {
 
         int index = 0;
 
-        pointMaps = new HashMap<Point, List<Integer>>();
+        pointHexNeighorMap = new TreeMap<Point, List<Integer>>(new Comparator<Point>() {
+            @Override
+            public int compare(Point point1, Point point2) {
+                if (point1.y < point2.y) {
+                    return -1;
+                } else if (point2.y > point1.y) {
+                    return 1;
+                } else {
+                    if (point1.x < point2.x) {
+                        return -1;
+                    } else if (point1.x  > point2.x) {
+                        return -1;
+                    }  else {
+                        return 0;
+                    }
+                }
+            }
+        });
 
         for (int i = 0; i < rowCounts.length; i++) {
             int count = rowCounts[i];
@@ -94,10 +100,10 @@ public class HexBoard {
                 hexagons[index] = hexagon;
 
                 for (Point p : hexagon.getPoints()) {
-                    List<Integer> l = pointMaps.get(p);
+                    List<Integer> l = pointHexNeighorMap.get(p);
                     if (l == null) {
                         l = new ArrayList<Integer>();
-                        pointMaps.put(p, l);
+                        pointHexNeighorMap.put(p, l);
                     }
                     l.add(index);
                 }
@@ -105,6 +111,7 @@ public class HexBoard {
                 index++;
             }
         }
+        sortedPoints = new ArrayList<Point>(pointHexNeighorMap.keySet());
     }
 
 }

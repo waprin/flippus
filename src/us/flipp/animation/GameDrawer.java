@@ -2,18 +2,18 @@ package us.flipp.animation;
 
 import android.graphics.*;
 import android.util.Log;
-import android.widget.TextView;
+import android.util.Pair;
+import us.flipp.moding.Player;
 import us.flipp.simulation.BoardState;
-import us.flipp.simulation.World;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 public class GameDrawer {
 
     private static final String TAG = GameDrawer.class.getName();
+    private static final float VILLAGE_RADIUS = 8.0f;
+
 
     private Paint selectedPaint;
     private Paint nonSelectedPaint;
@@ -25,6 +25,16 @@ public class GameDrawer {
 
     private int selected;
 
+    private Pair<Player, Integer> suggestedVillage;
+
+    public void setSuggestedVillage(Pair<Player, Integer> suggestedVillage) {
+        this.suggestedVillage = suggestedVillage;
+    }
+
+    public Pair<Player, Integer> getSuggestedVillage() {
+        return this.suggestedVillage;
+    }
+
     private int gameWidth = -254;
     private int gameHeight = -253;
 
@@ -33,8 +43,8 @@ public class GameDrawer {
     private boolean down;
 
     private Paint orangePaint;
-    private Paint blackPaint;
-
+    private Paint whitePaint;
+    private Paint textPaint;
 
     public static int[] RANDOM_COLORS = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.GREEN};
 
@@ -48,9 +58,13 @@ public class GameDrawer {
         orangePaint.setStyle(Paint.Style.FILL);
         orangePaint.setARGB(255, 200, 100, 100);
 
-        blackPaint = new Paint();
-        blackPaint.setStyle(Paint.Style.FILL);
-        blackPaint.setARGB(255, 255, 255, 255);
+        whitePaint = new Paint();
+        whitePaint.setStyle(Paint.Style.FILL);
+        whitePaint.setARGB(255, 255, 255, 255);
+
+        textPaint = new Paint();
+        textPaint.setARGB(255, 0, 0, 0);
+        textPaint.setTextAlign(Paint.Align.CENTER);
 
         nonSelectedPaint = new Paint();
         nonSelectedPaint.setColor(Color.BLACK);
@@ -86,8 +100,6 @@ public class GameDrawer {
              indexPaint.setAlpha(i);
              drawHexagon(collisionCanvas, hexes[i], new Paint[] {indexPaint}, false);
          }
-
-
         gameHeight = height;
         gameWidth = width;
     }
@@ -99,10 +111,10 @@ public class GameDrawer {
 
     public void drawBoard(Canvas canvas, BoardState boardState) {
 
-        canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), blackPaint);
+        canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), whitePaint);
 
         if (gameHeight < 0 || gameWidth < 0) {
-            Log.e(TAG, " CHECK ME OUT!!!");
+            Log.e(TAG, "drawBoard(): Board being drawn without being initialized.");
         }
 
         Hexagon[] hexes = hexBoard.getHexagons();
@@ -115,23 +127,32 @@ public class GameDrawer {
             } else  {
                 strokePaint = nonSelectedPaint;
             }
+            int value = boardState.getValue(i);
             drawHexagon(canvas, hexes[i], new Paint[]{fillPaint, strokePaint}, true);
+            drawValue(canvas, hexes[i], value);
         }
 
         for (BoardState.Intersection intersection : boardState.getIntersections()) {
-            if (intersection.suggested) {
-                orangePaint.setAlpha(alphaValue);
-            } else {
-                orangePaint.setAlpha(255);
-            }
             Point p = hexBoard.getPointByIndex(intersection.index);
-            canvas.drawCircle((float)p.x, (float)p.y, 8.0f, orangePaint);
+            canvas.drawCircle((float)p.x, (float)p.y, VILLAGE_RADIUS, orangePaint);
         }
+
+        if (suggestedVillage != null) {
+            Point p = hexBoard.getPointByIndex(suggestedVillage.second);
+            orangePaint.setAlpha(alphaValue);
+            canvas.drawCircle((float) p.x, (float) p.y, VILLAGE_RADIUS, orangePaint); ;
+            orangePaint.setAlpha(255);
+        }
+    }
+
+    private void drawValue(Canvas canvas, Hexagon hexagon, int value) {
+        String text = String.valueOf(value);
+        Point center = hexagon.getCenter();
+        canvas.drawText(text, center.x, center.y, textPaint);
     }
 
     private void drawHexagon(Canvas canvas, Hexagon hexagon, Paint[] paints, boolean scaled) {
         Path path = new Path(hexagon.getPath());
-       // matrix.reset();
         if (scaled) {
             Matrix scaleMatrix = new Matrix();
             scaleMatrix.setScale(.9f, .9f, hexagon.getCenter().x, hexagon.getCenter().y);
@@ -145,13 +166,13 @@ public class GameDrawer {
     public void tick() {
         if (down) {
             if (alphaValue > 100) {
-                orangePaint.setAlpha(alphaValue - 5);
+                alphaValue -= 5;
             } else {
                 down = false;
             }
         } else {
             if (alphaValue < 246) {
-                orangePaint.setAlpha(alphaValue + 5);
+                alphaValue += 5;
             } else {
                 down = true;
             }

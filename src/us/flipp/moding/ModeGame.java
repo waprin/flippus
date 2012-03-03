@@ -3,6 +3,7 @@ package us.flipp.moding;
 import android.content.Context;
 import android.graphics.*;
 import android.util.Log;
+import android.util.Pair;
 import us.flipp.animation.GameDrawer;
 import us.flipp.simulation.BoardState;
 
@@ -17,6 +18,13 @@ public class ModeGame extends Mode {
 
     private GameDrawer gameDrawer;
     private BoardState boardState;
+
+    private enum GameState {
+        NONE,
+        BUILDING
+    }
+
+    private GameState gameState;
 
     @Override
     public ModeAction tick(int timespan) {
@@ -37,19 +45,24 @@ public class ModeGame extends Mode {
         gameDrawer = new GameDrawer();
         currentPlayer = new Player();
         currentPlayer.setId(0);
+        gameState = GameState.NONE;
     }
 
     @Override
     public void handleButton() {
         Log.d(TAG, "handling button press");
-        switch (boardState.getMode()) {
+        switch (gameState) {
             case NONE:
                 Log.d(TAG, "switching to board state button");
-                boardState.setMode(BoardState.BoardMode.BUILDING);
+                gameState = GameState.BUILDING;
                 break;
             case BUILDING:
-                boardState.confirmVillage();
-                boardState.setMode(BoardState.BoardMode.NONE);
+                Pair<Player, Integer> pair = gameDrawer.getSuggestedVillage();
+                if (pair != null) {
+                    gameDrawer.setSuggestedVillage(null);
+                    boardState.buildVillage(pair.second, pair.first);
+                }
+                gameState = GameState.NONE;
                 break;
         }
     }
@@ -57,13 +70,13 @@ public class ModeGame extends Mode {
     @Override
     public void handleTap(int x, int y) {
         Log.d(TAG, "handle tap");
-        switch (boardState.getMode()) {
+        switch (gameState) {
             case NONE:
                 gameDrawer.selectHexagon(x, y);
                 break;
             case BUILDING:
                 int index = gameDrawer.getPoint(x, y);
-                boardState.suggestIntersection(index, currentPlayer);
+                gameDrawer.setSuggestedVillage(new Pair<Player, Integer>(currentPlayer, index));
                 break;
         }
     }
