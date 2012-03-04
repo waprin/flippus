@@ -27,6 +27,14 @@ public class GameStateMachine {
         }
     }
 
+    public String handleTopButton() {
+        return mode.handleTopButton();
+    }
+
+    public String handleBottomButton() {
+        return mode.handleBottomButton();
+    }
+
     public boolean tick(int timespan) {
         Mode.ModeAction action = mode.tick(timespan);
         if (action == Mode.ModeAction.ChangeMode) {
@@ -37,10 +45,6 @@ public class GameStateMachine {
 
     public void redraw(Canvas canvas) {
         mode.redraw(canvas);
-    }
-
-    public void handleButton() {
-        mode.handleButton();
     }
 
     public void screenChanged(int width, int height) {

@@ -4,16 +4,18 @@ import android.content.Context;
 import android.graphics.*;
 import android.util.Log;
 import android.util.Pair;
+import android.view.ViewDebug;
 import us.flipp.animation.GameDrawer;
 import us.flipp.simulation.BoardState;
+import us.flipp.simulation.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ModeGame extends Mode {
 
     static private String TAG = ModeGame.class.getName();
-    private Progress progress;
-    private List<Point> buildings;
+    private List<Player> players;
     private Player currentPlayer;
 
     private GameDrawer gameDrawer;
@@ -21,7 +23,8 @@ public class ModeGame extends Mode {
 
     private enum GameState {
         NONE,
-        BUILDING
+        BUILDING,
+        BUILDING_TRACK,
     }
 
     private GameState gameState;
@@ -35,21 +38,37 @@ public class ModeGame extends Mode {
     @Override
     public void screenChanged(int width, int height) {
         Log.d(TAG, "Screen changed.");
-        gameDrawer.updateSize(width, height);
+        gameDrawer.updateSize(width, height, boardState);
     }
 
     @Override
     public void setup(Context context) {
         Log.d(TAG, "Setup");
-        boardState = new BoardState();
         gameDrawer = new GameDrawer();
-        currentPlayer = new Player();
-        currentPlayer.setId(0);
+        players = new ArrayList<Player>();
+        for (int i = 0; i < 4; i++) {
+            Player player = new Player();
+            player.setId(i);
+            players.add(player);
+        }
+        boardState = new BoardState(players);
         gameState = GameState.NONE;
     }
 
     @Override
-    public void handleButton() {
+    public String handleBottomButton() {
+        Log.d(TAG, "handling bottom button");
+        switch (gameState) {
+            case NONE :
+                Log.d(TAG, "switching to road building state");
+                gameState = GameState.BUILDING_TRACK;
+                break;
+        }
+        return "";
+    }
+
+    @Override
+    public String handleTopButton() {
         Log.d(TAG, "handling button press");
         switch (gameState) {
             case NONE:
@@ -65,6 +84,7 @@ public class ModeGame extends Mode {
                 gameState = GameState.NONE;
                 break;
         }
+        return "";
     }
 
     @Override
@@ -75,9 +95,18 @@ public class ModeGame extends Mode {
                 gameDrawer.selectHexagon(x, y);
                 break;
             case BUILDING:
-                int index = gameDrawer.getPoint(x, y);
-                gameDrawer.setSuggestedVillage(new Pair<Player, Integer>(currentPlayer, index));
+            {
+                int closestPoint = gameDrawer.getClosestPoint(x, y);
+                gameDrawer.setSuggestedVillage(new Pair<Player, Integer>(currentPlayer, closestPoint));
                 break;
+            }
+            case BUILDING_TRACK:
+            {
+                int closestIndex = gameDrawer.getClosestPoint(x, y);
+                int nextIndex = gameDrawer.getClosestConnectedPoint(closestIndex, x, y);
+                gameDrawer.setSuggestedTrack(currentPlayer, new Pair<Integer, Integer>(closestIndex, nextIndex));
+                break;
+            }
         }
     }
 

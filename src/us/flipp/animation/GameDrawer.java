@@ -3,7 +3,7 @@ package us.flipp.animation;
 import android.graphics.*;
 import android.util.Log;
 import android.util.Pair;
-import us.flipp.moding.Player;
+import us.flipp.simulation.Player;
 import us.flipp.simulation.BoardState;
 
 import java.util.HashMap;
@@ -26,6 +26,7 @@ public class GameDrawer {
     private int selected;
 
     private Pair<Player, Integer> suggestedVillage;
+    private Pair<Player, Pair<Integer, Integer>> suggestedTrack;
 
     public void setSuggestedVillage(Pair<Player, Integer> suggestedVillage) {
         this.suggestedVillage = suggestedVillage;
@@ -45,6 +46,8 @@ public class GameDrawer {
     private Paint orangePaint;
     private Paint whitePaint;
     private Paint textPaint;
+    private Paint trackPaint;
+
 
     public static int[] RANDOM_COLORS = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.GREEN};
 
@@ -66,6 +69,11 @@ public class GameDrawer {
         textPaint.setARGB(255, 0, 0, 0);
         textPaint.setTextAlign(Paint.Align.CENTER);
 
+        trackPaint = new Paint();
+        trackPaint.setStrokeWidth(2.0f);
+        trackPaint.setARGB(255, 125, 25, 75);
+
+
         nonSelectedPaint = new Paint();
         nonSelectedPaint.setColor(Color.BLACK);
         nonSelectedPaint.setStyle(Paint.Style.STROKE);
@@ -85,7 +93,7 @@ public class GameDrawer {
         selected = -1;
     }
 
-    public void updateSize(int width, int height) {
+    public void updateSize(int width, int height, BoardState boardState) {
         Paint indexPaint = new Paint();
         indexPaint.setStyle(Paint.Style.FILL);
 
@@ -93,7 +101,7 @@ public class GameDrawer {
         collisionCanvas = new Canvas(collisionBitmap);
 
         hexBoard = new HexBoard();
-        hexBoard.updateSize(width, height);
+        hexBoard.updateSize(width, height, boardState);
         Hexagon[] hexes = hexBoard.getHexagons();
 
          for (int i = 0; i < hexes.length; i++) {
@@ -107,6 +115,10 @@ public class GameDrawer {
     public void selectHexagon(int x, int y) {
             selected = Color.alpha(collisionBitmap.getPixel(x, y));
         Log.w(TAG, "touch selected selected index " + selected);
+    }
+
+    public int getClosestTrack(int x, int y) {
+        return 0;
     }
 
     public void drawBoard(Canvas canvas, BoardState boardState) {
@@ -142,6 +154,11 @@ public class GameDrawer {
             orangePaint.setAlpha(alphaValue);
             canvas.drawCircle((float) p.x, (float) p.y, VILLAGE_RADIUS, orangePaint); ;
             orangePaint.setAlpha(255);
+        }
+        if (suggestedTrack != null) {
+            Point first = hexBoard.getPointByIndex(suggestedTrack.second.first);
+            Point second = hexBoard.getPointByIndex(suggestedTrack.second.second);
+            canvas.drawLine(first.x, first.y, second.x, second.y, orangePaint);
         }
     }
 
@@ -179,8 +196,16 @@ public class GameDrawer {
         }
     }
 
-    public int getPoint(int x, int y) {
-        return hexBoard.getClosesPoint(x, y);
+    public int getClosestPoint(int x, int y) {
+        return hexBoard.getClosesPoints(x, y);
+    }
+
+    public void setSuggestedTrack(Player player, Pair<Integer, Integer> suggestedTrack) {
+        this.suggestedTrack = new Pair<Player, Pair<Integer, Integer>>(player, suggestedTrack);
+    }
+
+    public int getClosestConnectedPoint(int closestIndex, int x, int y) {
+        return hexBoard.getClosestConnectedPoint(closestIndex, x, y);
     }
 }
 

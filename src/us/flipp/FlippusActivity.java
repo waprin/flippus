@@ -15,7 +15,8 @@ public class FlippusActivity extends Activity
 {
     private GameView gameView;
 
-    private Button button;
+    private Button topButton;
+    private Button bottomButton;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -32,18 +33,22 @@ public class FlippusActivity extends Activity
         setContentView(R.layout.main);
         gameView = (GameView) findViewById(R.id.game_view_id);
 
-        button = (Button) findViewById(R.id.next_level_button);
+        topButton = (Button) findViewById(R.id.top_button);
+        bottomButton = (Button) findViewById(R.id.bottom_button);
 
-
-        button.setOnClickListener(new OnClickListener() {
+        topButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                gameView.buttonPressed();
-
-                button.setText("Confirm?");
+                String nextString = gameView.handleTopButton();
+                topButton.setText(nextString);
             }
-        }
-
-        );
+        });
+        bottomButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String nextString = gameView.handleBottomButton();
+                bottomButton.setText(nextString);
+            }
+        });
     }
 }

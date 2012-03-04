@@ -79,15 +79,30 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         gameThread.start();
     }
 
-    public void buttonPressed() {
-        Log.d(TAG, "button pressed");
+    public String handleTopButton() {
+        Log.d(TAG, "top button pressed");
+        String buttonText = "ERROR 42";
         try {
             semaphore.acquire();
-            gameStateMachine.handleButton();
+            buttonText = gameStateMachine.handleTopButton();
             semaphore.release();
         } catch (InterruptedException e) {
-            Log.e("buttonPressed", "sempahore interrupted");
+            Log.e(TAG, "handleTopButton(): sempahore interrupted");
         }
+        return buttonText;
+    }
+
+    public String handleBottomButton() {
+        Log.d(TAG, "bottom button pressed");
+        String buttonText = "ERROR 42";
+        try {
+            semaphore.acquire();
+            buttonText = gameStateMachine.handleBottomButton();
+            semaphore.release();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "handleBottomButton(): sempahore interrupted");
+        }
+        return buttonText;
     }
 
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {

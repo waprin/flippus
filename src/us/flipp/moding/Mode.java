@@ -39,9 +39,15 @@ public class Mode {
     }
 
     // TODO: erase
-    public void handleButton() {
-
+    public String handleTopButton() {
+        return "";
     }
+
+    public String handleBottomButton() {
+        return "";
+    }
+
+
 
     public Mode teardown() {
         Mode pendMode = this.pendMode;
