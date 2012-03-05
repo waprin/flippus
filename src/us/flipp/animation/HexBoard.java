@@ -11,12 +11,21 @@ import java.util.*;
 public class HexBoard {
     private static final String TAG = HexBoard.class.getName();
 
-    private Map<Point, List<Integer>> pointHexNeighorMap;
-    private ArrayList<Point> sortedPoints;
+    private Set<GamePoint> allPoints;
 
     private Hexagon[] hexagons;
 
-    private class GamePoint {
+    public GamePoint getGamePoint(LogicalBoard.LogicalPoint logicalPoint) {
+        for (GamePoint gamePoint : allPoints) {
+            if (gamePoint.logicalPoint.equals(logicalPoint)) {
+                return gamePoint;
+            }
+        }
+        Log.e(TAG, "did not find logical point ");
+        return null;
+    }
+
+    public static class GamePoint {
         public Point visualPoint;
         public LogicalBoard.LogicalPoint logicalPoint;
 
@@ -24,49 +33,53 @@ public class HexBoard {
             this.visualPoint = visualPoint;
             this.logicalPoint = logicalPoint;
         }
+
+        @Override
+        public boolean equals(Object that) {
+            if (this == that) return true;
+            if ( !(that instanceof GamePoint)) return  false;
+            GamePoint rhs = (GamePoint) that;
+            return (rhs.visualPoint.x == visualPoint.x && rhs.visualPoint.y == visualPoint.y);
+        }
+
+        @Override
+        public int hashCode() {
+            return (visualPoint.x * 100000) + visualPoint.y;
+        }
     }
 
-    public int getClosesPoints(int x, int y) {
+    private LogicalBoard.LogicalPoint getClosesPoint(int x, int y, Collection<GamePoint> gamePoints) {
         Log.d(TAG, "getClosestPoint: " + x + " " + y);
 
-        Set<Point> points = pointHexNeighorMap.keySet();
         int minDistance = 10000000;
-        int i = 0;
-
-        int closest = i;
-        for (Point p : points) {
+        LogicalBoard.LogicalPoint logicalPoint = null;
+        for (GamePoint point : allPoints) {
+            Point p = point.visualPoint;
             int xdiff = p.x - x;
             int ydiff = p.y - y;
             xdiff = Math.abs(xdiff);
             ydiff = Math.abs(ydiff);
             int distance = xdiff + ydiff;
             if (distance < minDistance) {
-                closest = i;
+                logicalPoint = point.logicalPoint;
                 minDistance = distance;
             }
-            i++;
         }
-        Log.d(TAG, "closes point found " + closest);
-        return closest;
+        return logicalPoint;
     }
 
-
-    public int getClosestConnectedPoint(int closestIndex, int x, int y) {
-        Log.d(TAG, "getClosestConnectedPoint: index " + closestIndex + " x " + x + " y " + y);
-        Pair<Integer, Integer> intersectionCoords = BoardState.reverseCoords[closestIndex];
-        Log.d(TAG, "getClosestConnectedPoint: intersection coords are x: " + x + " y " + y);
-        boolean pointsUp = intersectionCoords.second  % 2 == 0;
-        ArrayList<Integer> potentialIndices = new ArrayList<Integer>();
-        if (pointsUp) {
-            if (intersectionCoords.second > 0) {
-                potentialIndices.add(BoardState.intersectionCoords[intersectionCoords.first][intersectionCoords.second-1]);
-            }
-        }
-        return 0;
+    public LogicalBoard.LogicalPoint getClosestPointToCoords(int x, int y) {
+        return getClosesPoint(x, y, allPoints);
     }
 
-    public Point getPointByIndex(int index) {
-        return sortedPoints.get(index);
+    public LogicalBoard.LogicalPoint getClosestConnectedPoint(LogicalBoard.LogicalPoint logicalPoint, int x, int y) {
+        List<LogicalBoard.LogicalPoint> connectedPoints = logicalPoint.getConnected();
+        List<GamePoint> gamePoints = new ArrayList<GamePoint>();
+        for (LogicalBoard.LogicalPoint p : connectedPoints) {
+            GamePoint gamePoint = getGamePoint(p);
+            gamePoints.add(gamePoint);
+        }
+        return getClosesPoint(x, y, gamePoints);
     }
 
     public Hexagon[] getHexagons() {
@@ -75,6 +88,7 @@ public class HexBoard {
 
     public void updateSize(int width, int height, BoardState boardState) {
         hexagons = new Hexagon[BoardState.TOTAL_HEXES];
+        allPoints = new HashSet<GamePoint>();
 
         int spaceWidthMargin = width / 10;
         int boardLeft = spaceWidthMargin;
@@ -92,48 +106,22 @@ public class HexBoard {
 
         int index = 0;
 
-        pointHexNeighorMap = new TreeMap<Point, List<Integer>>(new Comparator<Point>() {
-            @Override
-            public int compare(Point point1, Point point2) {
-                if (point1.y < point2.y) {
-                    return -1;
-                } else if (point2.y > point1.y) {
-                    return 1;
-                } else {
-                    if (point1.x < point2.x) {
-                        return -1;
-                    } else if (point1.x  > point2.x) {
-                        return -1;
-                    }  else {
-                        return 0;
-                    }
-                }
-            }
-        });
-
         for (int i = 0; i < BoardState.rowCounts.length; i++) {
             int count = BoardState.rowCounts[i];
             int diff = BoardState.ROW_MAX - count;
             int outerLeftOffset = boardLeft + (hexLineWidth * diff);
             int topOffset = boardTop + ( i * (hexLineHeight * 2) );
             for (int j = 0; j < count; j++) {
-                int leftOffset = outerLeftOffset + (j * (hexLineWidth * 2));
-                Hexagon hexagon = new Hexagon(leftOffset, topOffset, hexWidth, hexHeight);
-                hexagons[index] = hexagon;
                 LogicalBoard.LogicalHex logicalHex = boardState.getLogicalBoard().getRows().get(i).getHex(j);
-                for (Point p : hexagon.getPoints()) {
-                    List<Integer> l = pointHexNeighorMap.get(p);
-                    if (l == null) {
-                        l = new ArrayList<Integer>();
-                        pointHexNeighorMap.put(p, l);
-                    }
-                    l.add(index);
-                }
-
+                int leftOffset = outerLeftOffset + (j * (hexLineWidth * 2));
+                Hexagon hexagon = new Hexagon(leftOffset, topOffset, hexWidth, hexHeight, logicalHex);
+                hexagons[index] = hexagon;
                 index++;
+                for (GamePoint p : hexagon.getPoints()) {
+                    allPoints.add(p);
+                }
             }
         }
-        sortedPoints = new ArrayList<Point>(pointHexNeighorMap.keySet());
     }
 
 }

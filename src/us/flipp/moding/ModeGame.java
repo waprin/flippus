@@ -7,6 +7,7 @@ import android.util.Pair;
 import android.view.ViewDebug;
 import us.flipp.animation.GameDrawer;
 import us.flipp.simulation.BoardState;
+import us.flipp.simulation.LogicalBoard;
 import us.flipp.simulation.Player;
 
 import java.util.ArrayList;
@@ -76,7 +77,7 @@ public class ModeGame extends Mode {
                 gameState = GameState.BUILDING;
                 break;
             case BUILDING:
-                Pair<Player, Integer> pair = gameDrawer.getSuggestedVillage();
+                Pair<Player, LogicalBoard.LogicalPoint> pair = gameDrawer.getSuggestedVillage();
                 if (pair != null) {
                     gameDrawer.setSuggestedVillage(null);
                     boardState.buildVillage(pair.second, pair.first);
@@ -96,15 +97,15 @@ public class ModeGame extends Mode {
                 break;
             case BUILDING:
             {
-                int closestPoint = gameDrawer.getClosestPoint(x, y);
-                gameDrawer.setSuggestedVillage(new Pair<Player, Integer>(currentPlayer, closestPoint));
+                LogicalBoard.LogicalPoint closestPoint = gameDrawer.getClosestPoint(x, y);
+                gameDrawer.setSuggestedVillage(new Pair<Player, LogicalBoard.LogicalPoint>(currentPlayer, closestPoint));
                 break;
             }
             case BUILDING_TRACK:
             {
-                int closestIndex = gameDrawer.getClosestPoint(x, y);
-                int nextIndex = gameDrawer.getClosestConnectedPoint(closestIndex, x, y);
-                gameDrawer.setSuggestedTrack(currentPlayer, new Pair<Integer, Integer>(closestIndex, nextIndex));
+                LogicalBoard.LogicalPoint closestPoint = gameDrawer.getClosestPoint(x, y);
+                LogicalBoard.LogicalPoint connectedPoint = gameDrawer.getClosestConnectedPoint(closestPoint, x, y);
+                gameDrawer.setSuggestedTrack(currentPlayer, new Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>(closestPoint, connectedPoint));
                 break;
             }
         }

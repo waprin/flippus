@@ -19,17 +19,19 @@ public class LogicalBoard {
 
     static public class LogicalPoint {
         private List<LogicalPoint> connected;
-        private List<LogicalHex> adjacent;
         private int index;
 
         public LogicalPoint(int index) {
             this.index = index;
             connected = new ArrayList<LogicalPoint>();
-            adjacent = new ArrayList<LogicalHex>();
         }
 
         public void addConnected(LogicalPoint point) {
             connected.add(point);
+        }
+
+        public List<LogicalPoint> getConnected() {
+            return connected;
         }
     }
 

@@ -3,6 +3,7 @@ package us.flipp.animation;
 import android.graphics.*;
 import android.util.Log;
 import android.util.Pair;
+import us.flipp.simulation.LogicalBoard;
 import us.flipp.simulation.Player;
 import us.flipp.simulation.BoardState;
 
@@ -25,14 +26,14 @@ public class GameDrawer {
 
     private int selected;
 
-    private Pair<Player, Integer> suggestedVillage;
-    private Pair<Player, Pair<Integer, Integer>> suggestedTrack;
+    private Pair<Player, LogicalBoard.LogicalPoint> suggestedVillage;
+    private Pair<Player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>> suggestedTrack;
 
-    public void setSuggestedVillage(Pair<Player, Integer> suggestedVillage) {
+    public void setSuggestedVillage(Pair<Player, LogicalBoard.LogicalPoint> suggestedVillage) {
         this.suggestedVillage = suggestedVillage;
     }
 
-    public Pair<Player, Integer> getSuggestedVillage() {
+    public Pair<Player, LogicalBoard.LogicalPoint> getSuggestedVillage() {
         return this.suggestedVillage;
     }
 
@@ -145,20 +146,21 @@ public class GameDrawer {
         }
 
         for (BoardState.Intersection intersection : boardState.getIntersections()) {
-            Point p = hexBoard.getPointByIndex(intersection.index);
-            canvas.drawCircle((float)p.x, (float)p.y, VILLAGE_RADIUS, orangePaint);
+            LogicalBoard.LogicalPoint logicalPoint = intersection.point;
+            HexBoard.GamePoint gamePoint = hexBoard.getGamePoint(logicalPoint);
+            canvas.drawCircle((float)gamePoint.visualPoint.x, (float)gamePoint.visualPoint.y, VILLAGE_RADIUS, orangePaint);
         }
 
         if (suggestedVillage != null) {
-            Point p = hexBoard.getPointByIndex(suggestedVillage.second);
+            HexBoard.GamePoint p = hexBoard.getGamePoint(suggestedVillage.second);
             orangePaint.setAlpha(alphaValue);
-            canvas.drawCircle((float) p.x, (float) p.y, VILLAGE_RADIUS, orangePaint); ;
+            canvas.drawCircle((float) p.visualPoint.x, (float) p.visualPoint.y, VILLAGE_RADIUS, orangePaint); ;
             orangePaint.setAlpha(255);
         }
         if (suggestedTrack != null) {
-            Point first = hexBoard.getPointByIndex(suggestedTrack.second.first);
-            Point second = hexBoard.getPointByIndex(suggestedTrack.second.second);
-            canvas.drawLine(first.x, first.y, second.x, second.y, orangePaint);
+            HexBoard.GamePoint first = hexBoard.getGamePoint(suggestedTrack.second.first);
+            HexBoard.GamePoint second = hexBoard.getGamePoint(suggestedTrack.second.first);
+            canvas.drawLine(first.visualPoint.x, first.visualPoint.y, second.visualPoint.x, second.visualPoint.y, orangePaint);
         }
     }
 
@@ -196,16 +198,16 @@ public class GameDrawer {
         }
     }
 
-    public int getClosestPoint(int x, int y) {
-        return hexBoard.getClosesPoints(x, y);
+    public LogicalBoard.LogicalPoint getClosestPoint(int x, int y) {
+        return hexBoard.getClosesPoint(x, y);
     }
 
-    public void setSuggestedTrack(Player player, Pair<Integer, Integer> suggestedTrack) {
-        this.suggestedTrack = new Pair<Player, Pair<Integer, Integer>>(player, suggestedTrack);
+    public void setSuggestedTrack(Player player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint> suggestedTrack) {
+        this.suggestedTrack = new Pair<Player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>>(player, suggestedTrack);
     }
 
-    public int getClosestConnectedPoint(int closestIndex, int x, int y) {
-        return hexBoard.getClosestConnectedPoint(closestIndex, x, y);
+    public LogicalBoard.LogicalPoint getClosestConnectedPoint(LogicalBoard.LogicalPoint logicalPoint, int x, int y) {
+        return hexBoard.getClosestConnectedPoint(logicalPoint, x, y);
     }
 }
 

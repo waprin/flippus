@@ -25,7 +25,7 @@ public class BoardState {
     public LogicalBoard getLogicalBoard() {
         return logicalBoard;
     }
-
+/*
     static {
         int intersectionIndex = 0;
         intersectionCoords = new int[subRowCounts.length][];
@@ -39,7 +39,7 @@ public class BoardState {
         }
         totalIntersections = intersectionIndex;
     }
-
+  */
     public BoardState(List<Player> players) {
        logicalBoard = new LogicalBoard();
        this.players = players;
@@ -85,10 +85,10 @@ public class BoardState {
     }
 
     public class Intersection {
-        public int index;
+        public LogicalBoard.LogicalPoint point;
         public Player player;
-        public Intersection(int index, Player player) {
-            this.index = index;
+        public Intersection(LogicalBoard.LogicalPoint point, Player player) {
+            this.point = point;
             this.player = player;
         }
     }
@@ -108,8 +108,8 @@ public class BoardState {
         return intersections;
     }
 
-   public void buildVillage(int index, Player player) {
-       intersections.add(new Intersection(index, player));
+   public void buildVillage(LogicalBoard.LogicalPoint logicalPoint, Player player) {
+       intersections.add(new Intersection(logicalPoint, player));
    }
 
 }
