@@ -6,9 +6,11 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.ViewDebug;
 import us.flipp.animation.GameDrawer;
+import us.flipp.animation.HexBoard;
 import us.flipp.simulation.BoardState;
 import us.flipp.simulation.LogicalBoard;
 import us.flipp.simulation.Player;
+import us.flipp.utility.CircularLinkedList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +18,6 @@ import java.util.List;
 public class ModeGame extends Mode {
 
     static private String TAG = ModeGame.class.getName();
-    private List<Player> players;
-    private Player currentPlayer;
 
     private GameDrawer gameDrawer;
     private BoardState boardState;
@@ -39,6 +39,7 @@ public class ModeGame extends Mode {
     @Override
     public void screenChanged(int width, int height) {
         Log.d(TAG, "Screen changed.");
+        boardState.getLogicalBoard().print();
         gameDrawer.updateSize(width, height, boardState);
     }
 
@@ -46,13 +47,7 @@ public class ModeGame extends Mode {
     public void setup(Context context) {
         Log.d(TAG, "Setup");
         gameDrawer = new GameDrawer();
-        players = new ArrayList<Player>();
-        for (int i = 0; i < 4; i++) {
-            Player player = new Player();
-            player.setId(i);
-            players.add(player);
-        }
-        boardState = new BoardState(players);
+        boardState = new BoardState();
         gameState = GameState.NONE;
     }
 
@@ -64,6 +59,8 @@ public class ModeGame extends Mode {
                 Log.d(TAG, "switching to road building state");
                 gameState = GameState.BUILDING_TRACK;
                 break;
+            case BUILDING_TRACK:
+                Pair<Player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>>  pair = gameDrawer.getSuggestedTrack();
         }
         return "";
     }
@@ -98,14 +95,19 @@ public class ModeGame extends Mode {
             case BUILDING:
             {
                 LogicalBoard.LogicalPoint closestPoint = gameDrawer.getClosestPoint(x, y);
-                gameDrawer.setSuggestedVillage(new Pair<Player, LogicalBoard.LogicalPoint>(currentPlayer, closestPoint));
+                gameDrawer.setSuggestedVillage(new Pair<Player, LogicalBoard.LogicalPoint>(boardState.getCurrentPlayer(), closestPoint));
                 break;
             }
             case BUILDING_TRACK:
             {
+                Log.d(TAG, "handleTap(): Building Track");
                 LogicalBoard.LogicalPoint closestPoint = gameDrawer.getClosestPoint(x, y);
                 LogicalBoard.LogicalPoint connectedPoint = gameDrawer.getClosestConnectedPoint(closestPoint, x, y);
-                gameDrawer.setSuggestedTrack(currentPlayer, new Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>(closestPoint, connectedPoint));
+                if (closestPoint == connectedPoint) {
+                    Log.e(TAG, "handleTap(): somehow a point was detected as connected to itself");
+                }
+
+                gameDrawer.setSuggestedTrack(boardState.getCurrentPlayer(), new Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>(closestPoint, connectedPoint));
                 break;
             }
         }

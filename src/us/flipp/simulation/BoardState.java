@@ -3,6 +3,7 @@ package us.flipp.simulation;
 import android.util.Pair;
 import org.apache.commons.logging.Log;
 import us.flipp.animation.HexBoard;
+import us.flipp.utility.CircularLinkedList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +41,16 @@ public class BoardState {
         totalIntersections = intersectionIndex;
     }
   */
-    public BoardState(List<Player> players) {
+    public BoardState() {
        logicalBoard = new LogicalBoard();
-       this.players = players;
+       this.players = new CircularLinkedList<Player>();
+
+        for (int i = 0; i < 4; i++) {
+            Player player = new Player();
+            player.setId(i);
+            players.add(player);
+        }
+        currentPlayer = players.getNext();
 
        int totalCells = TOTAL_HEXES;
        hexStates = new ArrayList<HexState>();
@@ -62,7 +70,12 @@ public class BoardState {
        this.gamePhase = GamePhase.INITIAL_VILLAGE;
     }
 
-    private List<Player> players;
+    private CircularLinkedList<Player> players;
+    private Player currentPlayer;
+
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
 
     public enum HexColor {
         BLUE,

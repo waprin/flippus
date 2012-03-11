@@ -3,6 +3,7 @@ package us.flipp.simulation;
 import android.graphics.Point;
 import android.nfc.Tag;
 import android.util.Log;
+import us.flipp.animation.Hexagon;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +18,15 @@ public class LogicalBoard {
         return rows;
     }
 
+    private ArrayList<LogicalPoint> logicalPoints;
+
+    public LogicalPoint getLogicalPointByIndex(int i) {
+        return logicalPoints.get(i);
+    }
+
     static public class LogicalPoint {
         private List<LogicalPoint> connected;
         private int index;
-
         public LogicalPoint(int index) {
             this.index = index;
             connected = new ArrayList<LogicalPoint>();
@@ -33,18 +39,35 @@ public class LogicalBoard {
         public List<LogicalPoint> getConnected() {
             return connected;
         }
+
+        public int getIndex() {
+            return index;
+        }
     }
 
-    private int totalPoints = 0;
+    public void print() {
+        Log.d(TAG, "print() begin");
+        for (LogicalHexRow row : rows) {
+            Log.d(TAG, "print(): row size is " + row.size);
+            for (int i = 0; i < row.getSize(); i++) {
+                Log.d(TAG, "print(): cell value is " + row.getHex(i));
+            }
+        }
+    }
 
     private static void linkPoints(LogicalPoint first, LogicalPoint second) {
+        if (first == second) {
+            Log.e(TAG, "linkPoints(): SERIOUS ERROR: trying to link a point to itself");
+        }
+        Log.d(TAG, "linkPoints(): linking together nodes " + first.index + " and node " + second.index);
         first.addConnected(second);
         second.addConnected(first);
     }
 
     private LogicalPoint newPoint() {
-        LogicalPoint point = new LogicalPoint(totalPoints);
-        totalPoints++;
+        LogicalPoint point = new LogicalPoint(logicalPoints.size());
+        logicalPoints.add(point);
+        Log.d(TAG, "adding logical point with index " + point.getIndex());
         return point;
     }
 
@@ -67,7 +90,7 @@ public class LogicalBoard {
             if (leftAbove != null) {
                 firstPoint = leftAbove.getPoint(2);
             } else if (rightAbove != null) {
-                firstPoint = leftAbove.getPoint(4);
+                firstPoint = rightAbove.getPoint(4);
             } else {
                 firstPoint = newPoint();
             }
@@ -106,6 +129,10 @@ public class LogicalBoard {
 
     }
 
+    public List<LogicalPoint> getPoints() {
+        return logicalPoints;
+    }
+
     public class LogicalHexRow {
         private int size;
         private List<LogicalHex> hexes;
@@ -134,6 +161,7 @@ public class LogicalBoard {
             if (aboveRow == null) {
                 for (int i = 0; i < size; i++) {
                     LogicalHex hex = new LogicalHex(null, null, leftHex);
+                    hexes.add(hex);
                     leftHex = hex;
                 }
             } else {
@@ -146,20 +174,25 @@ public class LogicalBoard {
                     Log.wtf(TAG, "row being added is not a valid size!");
                     return;
                 }
-                int aboveIndex = smaller ? -1 : 0;
-
+                int aboveIndex = smaller ? 0 : -1;
+                Log.d(TAG, "LogicalHexRow() aboveRow is " + aboveRow.getSize());
                 for (int i = 0; i < size; i++) {
-                    LogicalHex hex = new LogicalHex(aboveRow.getHex(aboveIndex), aboveRow.getHex(aboveIndex + 1), leftHex);
+                    Log.d(TAG, "LogicalHexRow(): i is " + i);
+                    LogicalHex aboveRightHex = aboveRow.getHex(aboveIndex + 1);
+                    LogicalHex hex = new LogicalHex(aboveRow.getHex(aboveIndex), aboveRightHex, leftHex);
                     leftHex = hex;
                     hexes.add(hex);
                     aboveIndex++;
                 }
             }
+
+            this.size = size;
         }
     }
 
     public LogicalBoard() {
         rows = new ArrayList<LogicalHexRow>();
+        logicalPoints = new ArrayList<LogicalPoint>();
         LogicalHexRow firstRow = new LogicalHexRow(null, 3);
         LogicalHexRow secondRow = new LogicalHexRow(firstRow, 4);
         LogicalHexRow thirdRow = new LogicalHexRow(secondRow, 5);

@@ -11,9 +11,17 @@ import java.util.*;
 public class HexBoard {
     private static final String TAG = HexBoard.class.getName();
 
-    private Set<GamePoint> allPoints;
+    private List<GamePoint> allPoints;
 
     private Hexagon[] hexagons;
+
+    public List<GamePoint> getGamePoints(List<LogicalBoard.LogicalPoint> logicalPoints) {
+        List<GamePoint> gamePoints = new LinkedList<GamePoint>();
+        for (LogicalBoard.LogicalPoint p : logicalPoints) {
+            gamePoints.add(getGamePoint(p));
+        }
+        return gamePoints;
+    }
 
     public GamePoint getGamePoint(LogicalBoard.LogicalPoint logicalPoint) {
         for (GamePoint gamePoint : allPoints) {
@@ -53,7 +61,7 @@ public class HexBoard {
 
         int minDistance = 10000000;
         LogicalBoard.LogicalPoint logicalPoint = null;
-        for (GamePoint point : allPoints) {
+        for (GamePoint point : gamePoints) {
             Point p = point.visualPoint;
             int xdiff = p.x - x;
             int ydiff = p.y - y;
@@ -72,14 +80,15 @@ public class HexBoard {
         return getClosesPoint(x, y, allPoints);
     }
 
+
     public LogicalBoard.LogicalPoint getClosestConnectedPoint(LogicalBoard.LogicalPoint logicalPoint, int x, int y) {
         List<LogicalBoard.LogicalPoint> connectedPoints = logicalPoint.getConnected();
-        List<GamePoint> gamePoints = new ArrayList<GamePoint>();
+        List<GamePoint> localGamePoints = new ArrayList<GamePoint>();
         for (LogicalBoard.LogicalPoint p : connectedPoints) {
             GamePoint gamePoint = getGamePoint(p);
-            gamePoints.add(gamePoint);
+            localGamePoints.add(gamePoint);
         }
-        return getClosesPoint(x, y, gamePoints);
+        return getClosesPoint(x, y, localGamePoints);
     }
 
     public Hexagon[] getHexagons() {
@@ -88,7 +97,7 @@ public class HexBoard {
 
     public void updateSize(int width, int height, BoardState boardState) {
         hexagons = new Hexagon[BoardState.TOTAL_HEXES];
-        allPoints = new HashSet<GamePoint>();
+        allPoints = new ArrayList<GamePoint>();
 
         int spaceWidthMargin = width / 10;
         int boardLeft = spaceWidthMargin;
