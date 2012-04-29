@@ -1,5 +1,7 @@
 package us.flipp.utility;
 
+import us.flipp.simulation.Player;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;

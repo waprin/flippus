@@ -21,9 +21,13 @@ public class ModeGame extends Mode {
 
     private GameDrawer gameDrawer;
     private BoardState boardState;
+    private boolean isBuilding;
+
+    public static final int MAX_PLAYERS = 4;
 
     private enum GameState {
-        NONE,
+        SETUP_1,
+        SETUP_2,
         BUILDING,
         BUILDING_TRACK,
     }
@@ -40,25 +44,22 @@ public class ModeGame extends Mode {
     public void screenChanged(int width, int height) {
         Log.d(TAG, "Screen changed.");
         boardState.getLogicalBoard().print();
-        gameDrawer.updateSize(width, height, boardState);
+        gameDrawer.updateSize(width, height);
     }
 
     @Override
     public void setup(Context context) {
         Log.d(TAG, "Setup");
-        gameDrawer = new GameDrawer();
+        gameDrawer = new GameDrawer(this);
         boardState = new BoardState();
-        gameState = GameState.NONE;
+        gameState = GameState.SETUP_1;
+        isBuilding = true;
     }
 
     @Override
     public String handleBottomButton() {
         Log.d(TAG, "handling bottom button");
         switch (gameState) {
-            case NONE :
-                Log.d(TAG, "switching to road building state");
-                gameState = GameState.BUILDING_TRACK;
-                break;
             case BUILDING_TRACK:
                 Pair<Player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>>  pair = gameDrawer.getSuggestedTrack();
         }
@@ -69,17 +70,19 @@ public class ModeGame extends Mode {
     public String handleTopButton() {
         Log.d(TAG, "handling button press");
         switch (gameState) {
-            case NONE:
-                Log.d(TAG, "switching to board state button");
-                gameState = GameState.BUILDING;
-                break;
-            case BUILDING:
+            case SETUP_1:
                 Pair<Player, LogicalBoard.LogicalPoint> pair = gameDrawer.getSuggestedVillage();
                 if (pair != null) {
                     gameDrawer.setSuggestedVillage(null);
                     boardState.buildVillage(pair.second, pair.first);
+                    if (gameState == GameState.SETUP_2) {
+
+                    }
                 }
-                gameState = GameState.NONE;
+                boardState.endTurn();
+                if (boardState.isFirstPlayerCurrent()) {
+                    gameState = GameState.SETUP_2;
+                }
                 break;
         }
         return "";
@@ -87,12 +90,17 @@ public class ModeGame extends Mode {
 
     @Override
     public void handleTap(int x, int y) {
+        if (gameDrawer.boardContains(x, y)) {
+            handleBoardTap(x, y);
+        }
+
+    }
+
+    private void handleBoardTap(int x, int y) {
         Log.d(TAG, "handle tap");
         switch (gameState) {
-            case NONE:
-                gameDrawer.selectHexagon(x, y);
-                break;
-            case BUILDING:
+            case SETUP_1:
+            case SETUP_2:
             {
                 LogicalBoard.LogicalPoint closestPoint = gameDrawer.getClosestPoint(x, y);
                 gameDrawer.setSuggestedVillage(new Pair<Player, LogicalBoard.LogicalPoint>(boardState.getCurrentPlayer(), closestPoint));
@@ -113,6 +121,10 @@ public class ModeGame extends Mode {
         }
     }
 
+    public BoardState getBoardState() {
+        return boardState;
+    }
+
     @Override
     public Mode teardown() {
         return super.teardown();
@@ -122,5 +134,6 @@ public class ModeGame extends Mode {
     public void redraw(Canvas canvas) {
         super.redraw(canvas);
         gameDrawer.drawBoard(canvas, boardState);
+        gameDrawer.drawWidgets(canvas, boardState);
     }
 }

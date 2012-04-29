@@ -14,6 +14,12 @@ public class HexBoard {
     private List<GamePoint> allPoints;
 
     private Hexagon[] hexagons;
+    private int totalHeight;
+    private int totalWidth;
+
+    public boolean contains(int x, int y) {
+        return  x < totalWidth && y < totalHeight;
+    }
 
     public List<GamePoint> getGamePoints(List<LogicalBoard.LogicalPoint> logicalPoints) {
         List<GamePoint> gamePoints = new LinkedList<GamePoint>();
@@ -115,8 +121,11 @@ public class HexBoard {
 
         int index = 0;
 
+
+        int maxCount = 0;
         for (int i = 0; i < BoardState.rowCounts.length; i++) {
             int count = BoardState.rowCounts[i];
+            if (count > maxCount) maxCount = count;
             int diff = BoardState.ROW_MAX - count;
             int outerLeftOffset = boardLeft + (hexLineWidth * diff);
             int topOffset = boardTop + ( i * (hexLineHeight * 2) );
@@ -131,6 +140,8 @@ public class HexBoard {
                 }
             }
         }
+        totalHeight = BoardState.rowCounts.length * hexHeight;
+        totalWidth = maxCount * hexWidth;
     }
 
 }

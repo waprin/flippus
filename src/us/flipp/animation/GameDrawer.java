@@ -3,11 +3,13 @@ package us.flipp.animation;
 import android.graphics.*;
 import android.util.Log;
 import android.util.Pair;
+import us.flipp.moding.ModeGame;
 import us.flipp.simulation.LogicalBoard;
 import us.flipp.simulation.Player;
 import us.flipp.simulation.BoardState;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +31,7 @@ public class GameDrawer {
 
     private Pair<Player, LogicalBoard.LogicalPoint> suggestedVillage;
     private Pair<Player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>> suggestedTrack;
-    private ResourceWidget resourceWidget;
+    private List<Widget> widgets;
 
     public void setSuggestedVillage(Pair<Player, LogicalBoard.LogicalPoint> suggestedVillage) {
         this.suggestedVillage = suggestedVillage;
@@ -42,7 +44,8 @@ public class GameDrawer {
     private int gameWidth = -254;
     private int gameHeight = -253;
 
-    private Map<BoardState.HexColor, Paint> colorPaints;
+    private Map<BoardState.Resource, Paint> colorPaints;
+    private Paint[] playerPaints;
 
     private boolean down;
 
@@ -53,13 +56,17 @@ public class GameDrawer {
     private Paint blackPaint;
 
 
-    public static int[] RANDOM_COLORS = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.GREEN};
+    public static int[] HEXAGON_COLORS = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
 
     private int alphaValue;
 
+    private ModeGame modeGame;
 
-    public GameDrawer() {
+
+    public GameDrawer(ModeGame modeGame) {
         alphaValue = 255;
+
+        this.modeGame = modeGame;
 
         blackPaint = new Paint();
         blackPaint.setARGB(255, 0, 0, 0);
@@ -89,27 +96,49 @@ public class GameDrawer {
         selectedPaint = new Paint(nonSelectedPaint);
         selectedPaint.setColor(Color.WHITE);
 
-        colorPaints = new HashMap<BoardState.HexColor, Paint>();
+        colorPaints = new HashMap<BoardState.Resource, Paint>();
 
-        for (int i = 0; i < BoardState.HexColor.values().length; i++) {
+        for (int i = 0; i < BoardState.Resource.values().length; i++) {
             Paint paint= new Paint();
-            paint.setColor(RANDOM_COLORS[i]);
+            paint.setColor(HEXAGON_COLORS[i]);
             paint.setStyle(Paint.Style.FILL);
-            colorPaints.put(BoardState.HexColor.values()[i], paint);
+            colorPaints.put(BoardState.Resource.values()[i], paint);
         }
+
+        playerPaints = new Paint[ModeGame.MAX_PLAYERS];
+
+        Paint playerPaint = new Paint();
+        playerPaint.setStyle(Paint.Style.FILL);
+        playerPaint.setARGB(255, 248, 123, 180);
+        playerPaints[0] = playerPaint;
+        Paint player2Paint = new Paint(playerPaint);
+        player2Paint.setARGB(255, 130, 220, 180);
+        playerPaints[1] = player2Paint;
+        Paint player3Paint = new Paint(playerPaint);
+        player3Paint.setARGB(255, 110, 80, 140);
+        playerPaints[2] = player3Paint;
+        Paint player4Paint = new Paint(playerPaint);
+        player4Paint.setARGB(255, 100, 190, 120);
+        playerPaints[3] = player4Paint;
+
+
         selected = -1;
     }
 
-    public void updateSize(int width, int height, BoardState boardState) {
+    public void updateSize(int width, int height) {
         Paint indexPaint = new Paint();
         indexPaint.setStyle(Paint.Style.FILL);
 
         collisionBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         collisionCanvas = new Canvas(collisionBitmap);
 
+
         hexBoard = new HexBoard();
-        hexBoard.updateSize(width, height, boardState);
-        resourceWidget = new ResourceWidget(width * .1, height * .8, width * .1, height * .1);
+        hexBoard.updateSize(width, height, modeGame.getBoardState());
+        widgets = new LinkedList<Widget>();
+        widgets.add(new ResourceWidget(new Rect((int)(width * .1), (int)(height * .75), (int)(width * .4), (int)(height * .95))));
+        widgets.add(new ModeWidget(modeGame, new Rect((int)(width * .7), (int)(height * .75), (int)(width * .8), (int)(height * .8))));
+        widgets.add(new TurnWidget(modeGame.getBoardState(), new Rect((int)(width * .7), (int)(height * .9), (int)(width * .9), (int)(height * .9))));
         Hexagon[] hexes = hexBoard.getHexagons();
 
          for (int i = 0; i < hexes.length; i++) {
@@ -123,10 +152,6 @@ public class GameDrawer {
     public void selectHexagon(int x, int y) {
             selected = Color.alpha(collisionBitmap.getPixel(x, y));
         Log.w(TAG, "touch selected selected index " + selected);
-    }
-
-    public int getClosestTrack(int x, int y) {
-        return 0;
     }
 
     public void drawBoard(Canvas canvas, BoardState boardState) {
@@ -155,14 +180,15 @@ public class GameDrawer {
         for (BoardState.Intersection intersection : boardState.getIntersections()) {
             LogicalBoard.LogicalPoint logicalPoint = intersection.point;
             HexBoard.GamePoint gamePoint = hexBoard.getGamePoint(logicalPoint);
-            canvas.drawCircle((float) gamePoint.visualPoint.x, (float) gamePoint.visualPoint.y, VILLAGE_RADIUS, orangePaint);
+            canvas.drawCircle((float) gamePoint.visualPoint.x, (float) gamePoint.visualPoint.y, VILLAGE_RADIUS, playerPaints[intersection.player.getId()]);
         }
 
         if (suggestedVillage != null) {
             HexBoard.GamePoint p = hexBoard.getGamePoint(suggestedVillage.second);
-            orangePaint.setAlpha(alphaValue);
-            canvas.drawCircle((float) p.visualPoint.x, (float) p.visualPoint.y, VILLAGE_RADIUS, orangePaint); ;
-            orangePaint.setAlpha(255);
+            Paint playerVillagePaint = playerPaints[suggestedVillage.first.getId()];
+            playerVillagePaint.setAlpha(alphaValue);
+            canvas.drawCircle((float) p.visualPoint.x, (float) p.visualPoint.y, VILLAGE_RADIUS, playerVillagePaint);
+            playerVillagePaint.setAlpha(255);
         }
 
         if (suggestedTrack != null) {
@@ -186,7 +212,9 @@ public class GameDrawer {
     }
 
     public void drawWidgets(Canvas canvas, BoardState boardState) {
-        resourceWidget.draw(canvas, boardState);
+        for (Widget widget : widgets) {
+            widget.draw(canvas, boardState);
+        }
     }
 
     private void drawValue(Canvas canvas, Hexagon hexagon, int value) {
@@ -241,6 +269,10 @@ public class GameDrawer {
 
     public Pair<Player,Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>> getSuggestedTrack() {
         return suggestedTrack;
+    }
+
+    public boolean boardContains(int x, int y) {
+        return hexBoard.contains(x, y);
     }
 }
 

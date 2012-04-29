@@ -1,8 +1,6 @@
 package us.flipp.simulation;
 
 import android.util.Pair;
-import org.apache.commons.logging.Log;
-import us.flipp.animation.HexBoard;
 import us.flipp.utility.CircularLinkedList;
 
 import java.util.ArrayList;
@@ -51,18 +49,19 @@ public class BoardState {
             players.add(player);
         }
         currentPlayer = players.getNext();
+        firstPlayer = currentPlayer;
 
        int totalCells = TOTAL_HEXES;
        hexStates = new ArrayList<HexState>();
 
        intersections = new ArrayList<Intersection>();
 
-       int length = HexColor.values().length;
+       int length = Resource.values().length;
        Random rand = new Random();
 
        for (int i = 0; i < totalCells; i++) {
            HexState hexState = new HexState();
-           hexState.hexColor = HexColor.values()[rand.nextInt(length)];
+           hexState.resource = Resource.values()[rand.nextInt(length)];
            hexState.index = i;
            hexState.value = rand.nextInt(13);
            hexStates.add(hexState);
@@ -72,12 +71,19 @@ public class BoardState {
 
     private CircularLinkedList<Player> players;
     private Player currentPlayer;
+    private Player firstPlayer;
+
+
 
     public Player getCurrentPlayer() {
         return currentPlayer;
     }
 
-    public enum HexColor {
+    public boolean isFirstPlayerCurrent() {
+        return firstPlayer == currentPlayer;
+    }
+
+    public enum Resource {
         BLUE,
         GREEN,
         RED,
@@ -93,7 +99,7 @@ public class BoardState {
 
     static private class HexState {
         public int index;
-        public HexColor hexColor;
+        public Resource resource;
         public int value;
     }
 
@@ -106,8 +112,8 @@ public class BoardState {
         }
     }
 
-    public HexColor getColor(int index) {
-        return hexStates.get(index).hexColor;
+    public Resource getColor(int index) {
+        return hexStates.get(index).resource;
     }
 
     public int getValue(int index) {
@@ -123,6 +129,10 @@ public class BoardState {
 
    public void buildVillage(LogicalBoard.LogicalPoint logicalPoint, Player player) {
        intersections.add(new Intersection(logicalPoint, player));
+   }
+
+   public void endTurn() {
+       currentPlayer = players.getNext();
    }
 
 }
