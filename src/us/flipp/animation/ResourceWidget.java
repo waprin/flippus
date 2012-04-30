@@ -3,6 +3,9 @@ package us.flipp.animation;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.nfc.Tag;
+import android.util.Log;
+import us.flipp.moding.ModeGame;
 import us.flipp.simulation.BoardState;
 import us.flipp.simulation.Player;
 
@@ -11,18 +14,20 @@ import java.util.TreeMap;
 
 public class ResourceWidget implements Widget {
 
+    private static final String TAG = ResourceWidget.class.getName();
+
     private Rect rect;
     private Paint textPaint;
     private Paint backgroundPaint;
     private Paint smallPaintText;
     private Paint colorPaint;
 
-    private Player player;
+    private ModeGame modeGame;
 
-    public ResourceWidget(Rect rect, Player player) {
+    public ResourceWidget(ModeGame modeGame, Rect rect) {
 
+        this.modeGame = modeGame;
         this.rect = rect;
-        this.player = player;
 
         backgroundPaint = new Paint();
         backgroundPaint.setStyle(Paint.Style.FILL);
@@ -52,8 +57,19 @@ public class ResourceWidget implements Widget {
         for (int i = 0; i < GameDrawer.HEXAGON_COLORS.length; i++) {
             colorPaint.setColor(GameDrawer.HEXAGON_COLORS[i]);
             canvas.drawRect(new Rect(rect.left + 30, rect.top + i * demoHeight, rect.left + 60, rect.top + ((i+1)*demoHeight)), colorPaint);
-            int value = player.getResourceCount(BoardState.Resource.values()[i]);
+            Log.d(TAG, "draw(): mode game is " + modeGame);
+            Log.d(TAG, "draw(): current player is " + modeGame.getBoardState().getCurrentPlayer());
+            Log.d(TAG, "draw(): index is " + i);
+            Integer value = modeGame.getBoardState().getCurrentPlayer().getResourceCount(BoardState.Resource.values()[i]);
+            if (value == null) {
+                value = 0;
+            }
             canvas.drawText(String.valueOf(value), rect.left, rect.top + 15 + (i * demoHeight), textPaint);
         }
+    }
+
+    @Override
+    public void handleTap(int x, int y) {
+
     }
 }

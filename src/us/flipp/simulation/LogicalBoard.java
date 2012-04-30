@@ -7,15 +7,21 @@ import us.flipp.animation.Hexagon;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class LogicalBoard {
 
     private static final String TAG = LogicalBoard.class.getName();
 
     private List<LogicalHexRow> rows;
+    private ArrayList<LogicalHex> allHexes;
 
     public List<LogicalHexRow> getRows() {
         return rows;
+    }
+
+    public LogicalHex getHexByIndex(int index) {
+        return allHexes.get(index);
     }
 
     private ArrayList<LogicalPoint> logicalPoints;
@@ -24,12 +30,41 @@ public class LogicalBoard {
         return logicalPoints.get(i);
     }
 
+
+    static public class HexState {
+        private BoardState.Resource resource;
+        private int diceValue;
+
+        public BoardState.Resource getResource() {
+            return resource;
+        }
+
+        public void setResource(BoardState.Resource resource) {
+            this.resource = resource;
+        }
+
+        public int getDiceValue() {
+            return diceValue;
+        }
+
+        public void setDiceValue(int diceValue) {
+            this.diceValue = diceValue;
+        }
+
+        public HexState() {
+
+        }
+    }
+
     static public class LogicalPoint {
         private List<LogicalPoint> connected;
         private int index;
+        private List<LogicalHex> hexes;
+
         public LogicalPoint(int index) {
             this.index = index;
-            connected = new ArrayList<LogicalPoint>();
+            this.connected = new ArrayList<LogicalPoint>();
+            this.hexes = new ArrayList<LogicalHex>();
         }
 
         public void addConnected(LogicalPoint point) {
@@ -42,6 +77,14 @@ public class LogicalBoard {
 
         public int getIndex() {
             return index;
+        }
+
+        public List<LogicalHex> getHexes() {
+            return hexes;
+        }
+
+        public void addHexagon(LogicalHex logicalHex) {
+            hexes.add(logicalHex);
         }
     }
 
@@ -78,8 +121,20 @@ public class LogicalBoard {
             return points.get(index);
         }
 
+        private HexState hexState;
+
+        public HexState getHexState() {
+            return hexState;
+        }
 
         public LogicalHex(LogicalHex leftAbove, LogicalHex rightAbove, LogicalHex left) {
+            int length = BoardState.Resource.values().length;
+            Random rand = new Random();
+           hexState = new HexState();
+           hexState.setResource(BoardState.Resource.values()[rand.nextInt(length)]);
+           hexState.setDiceValue(rand.nextInt(13));
+
+
             LogicalPoint firstPoint;
             LogicalPoint secondPoint;
             LogicalPoint thirdPoint;
@@ -110,6 +165,13 @@ public class LogicalBoard {
                 fifthPoint = newPoint();
                 sixthPoint = newPoint();
             }
+
+            firstPoint.addHexagon(this);
+            secondPoint.addHexagon(this);
+            thirdPoint.addHexagon(this);
+            fourthPoint.addHexagon(this);
+            fifthPoint.addHexagon(this);
+            sixthPoint.addHexagon(this);
 
             linkPoints(firstPoint, secondPoint);
             linkPoints(secondPoint, thirdPoint);
@@ -162,6 +224,7 @@ public class LogicalBoard {
                 for (int i = 0; i < size; i++) {
                     LogicalHex hex = new LogicalHex(null, null, leftHex);
                     hexes.add(hex);
+                    allHexes.add(hex);
                     leftHex = hex;
                 }
             } else {
@@ -180,6 +243,7 @@ public class LogicalBoard {
                     Log.d(TAG, "LogicalHexRow(): i is " + i);
                     LogicalHex aboveRightHex = aboveRow.getHex(aboveIndex + 1);
                     LogicalHex hex = new LogicalHex(aboveRow.getHex(aboveIndex), aboveRightHex, leftHex);
+                    allHexes.add(hex);
                     leftHex = hex;
                     hexes.add(hex);
                     aboveIndex++;
@@ -192,6 +256,7 @@ public class LogicalBoard {
 
     public LogicalBoard() {
         rows = new ArrayList<LogicalHexRow>();
+        allHexes = new ArrayList<LogicalHex>();
         logicalPoints = new ArrayList<LogicalPoint>();
         LogicalHexRow firstRow = new LogicalHexRow(null, 3);
         LogicalHexRow secondRow = new LogicalHexRow(firstRow, 4);

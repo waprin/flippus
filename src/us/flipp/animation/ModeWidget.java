@@ -40,4 +40,9 @@ public class ModeWidget implements Widget {
         canvas.drawText("Start", rect.centerX(), rect.centerY() + -(fm.ascent + fm.descent) / 2, textPaint);
         canvas.drawRect(rect, borderPaint);
     }
+
+    @Override
+    public void handleTap(int x, int y) {
+
+    }
 }

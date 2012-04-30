@@ -1,18 +1,27 @@
 package us.flipp.simulation;
 
+import android.util.Log;
+
 import java.util.Map;
 import java.util.TreeMap;
 
 public class Player {
 
+    private static final String TAG = Player.class.getName();
+
     private Map<BoardState.Resource, Integer> resources;
 
-    public int getResourceCount(BoardState.Resource resource) {
+    public Integer getResourceCount(BoardState.Resource resource) {
         return resources.get(resource);
     }
 
     public void increaseResourceCount(BoardState.Resource resource, int count) {
-        resources.put(resource, resources.get(resource) + count);
+        Integer previous = resources.get(resource);
+        if (previous == null) {
+            previous = 0;
+        }
+        Log.d(TAG, "increasing " + this + " resource value " + resource + " from " + previous + " by " + count);
+        resources.put(resource, previous + count);
     }
 
     public int getId() {

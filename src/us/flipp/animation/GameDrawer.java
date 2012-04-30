@@ -121,7 +121,6 @@ public class GameDrawer {
         player4Paint.setARGB(255, 100, 190, 120);
         playerPaints[3] = player4Paint;
 
-
         selected = -1;
     }
 
@@ -136,7 +135,7 @@ public class GameDrawer {
         hexBoard = new HexBoard();
         hexBoard.updateSize(width, height, modeGame.getBoardState());
         widgets = new LinkedList<Widget>();
-        widgets.add(new ResourceWidget(new Rect((int)(width * .1), (int)(height * .75), (int)(width * .4), (int)(height * .95))));
+        widgets.add(new ResourceWidget(modeGame, new Rect((int)(width * .1), (int)(height * .75), (int)(width * .4), (int)(height * .95))));
         widgets.add(new ModeWidget(modeGame, new Rect((int)(width * .7), (int)(height * .75), (int)(width * .8), (int)(height * .8))));
         widgets.add(new TurnWidget(modeGame.getBoardState(), new Rect((int)(width * .7), (int)(height * .9), (int)(width * .9), (int)(height * .9))));
         Hexagon[] hexes = hexBoard.getHexagons();
@@ -165,14 +164,15 @@ public class GameDrawer {
         Hexagon[] hexes = hexBoard.getHexagons();
 
         for(int i = 0; i < hexes.length; i++) {
-            Paint fillPaint = colorPaints.get(boardState.getColor(i));
+            BoardState.Resource resource = boardState.getLogicalBoard().getHexByIndex(i).getHexState().getResource();
+            Paint fillPaint = colorPaints.get(resource);
             Paint strokePaint;
             if (i == selected) {
                 strokePaint = selectedPaint;
             } else  {
                 strokePaint = nonSelectedPaint;
             }
-            int value = boardState.getValue(i);
+            int value = boardState.getLogicalBoard().getHexByIndex(i).getHexState().getDiceValue();
             drawHexagon(canvas, hexes[i], new Paint[]{fillPaint, strokePaint}, true);
             drawValue(canvas, hexes[i], value);
         }
@@ -273,6 +273,14 @@ public class GameDrawer {
 
     public boolean boardContains(int x, int y) {
         return hexBoard.contains(x, y);
+    }
+
+    public void handleTap(int x, int y) {
+        for (Widget widget : widgets) {
+            if (widget.contains(x, y)) {
+                widget.handleTap(x, y);
+            }
+        }
     }
 }
 

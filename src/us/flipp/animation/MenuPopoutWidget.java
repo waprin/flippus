@@ -4,19 +4,17 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import us.flipp.simulation.BoardState;
-import us.flipp.simulation.Player;
 
-public class TurnWidget implements Widget {
+public class MenuPopoutWidget implements Widget {
 
     private Rect rect;
-    private Paint textPaint;
-    private BoardState boardState;
+    private Paint paint;
 
-    public TurnWidget(BoardState boardState, Rect rect) {
-        this.boardState = boardState;
+    public MenuPopoutWidget(Rect rect) {
         this.rect = rect;
-        textPaint = new Paint();
-        textPaint.setARGB(255, 0, 0, 0);
+        paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
+        paint.setARGB(255, 255, 0, 0);
     }
 
     @Override
@@ -26,7 +24,7 @@ public class TurnWidget implements Widget {
 
     @Override
     public void draw(Canvas canvas, BoardState boardState) {
-        canvas.drawText(boardState.getCurrentPlayer().toString(), rect.left, rect.top, textPaint);
+        canvas.drawRect(rect, paint);
     }
 
     @Override

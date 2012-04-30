@@ -7,6 +7,8 @@ import android.util.Pair;
 import android.view.ViewDebug;
 import us.flipp.animation.GameDrawer;
 import us.flipp.animation.HexBoard;
+import us.flipp.animation.Hexagon;
+import us.flipp.animation.Widget;
 import us.flipp.simulation.BoardState;
 import us.flipp.simulation.LogicalBoard;
 import us.flipp.simulation.Player;
@@ -28,6 +30,7 @@ public class ModeGame extends Mode {
     private enum GameState {
         SETUP_1,
         SETUP_2,
+        IN_GAME,
         BUILDING,
         BUILDING_TRACK,
     }
@@ -71,17 +74,27 @@ public class ModeGame extends Mode {
         Log.d(TAG, "handling button press");
         switch (gameState) {
             case SETUP_1:
+            case SETUP_2:
                 Pair<Player, LogicalBoard.LogicalPoint> pair = gameDrawer.getSuggestedVillage();
                 if (pair != null) {
                     gameDrawer.setSuggestedVillage(null);
                     boardState.buildVillage(pair.second, pair.first);
                     if (gameState == GameState.SETUP_2) {
-
+                        List<LogicalBoard.LogicalHex> adjacentHexes = pair.second.getHexes();
+                        for (LogicalBoard.LogicalHex hex : adjacentHexes) {
+                            BoardState.Resource resource = hex.getHexState().getResource();
+                            int diceValue = hex.getHexState().getDiceValue();
+                            boardState.getCurrentPlayer().increaseResourceCount(resource, diceValue);
+                        }
                     }
                 }
                 boardState.endTurn();
                 if (boardState.isFirstPlayerCurrent()) {
-                    gameState = GameState.SETUP_2;
+                    if (gameState == GameState.SETUP_1) {
+                        gameState = GameState.SETUP_2;
+                    } else if (gameState == GameState.SETUP_2) {
+                        gameState = GameState.IN_GAME;
+                    }
                 }
                 break;
         }
@@ -90,6 +103,7 @@ public class ModeGame extends Mode {
 
     @Override
     public void handleTap(int x, int y) {
+        gameDrawer.handleTap(x, y);
         if (gameDrawer.boardContains(x, y)) {
             handleBoardTap(x, y);
         }
