@@ -138,6 +138,8 @@ public class GameDrawer {
         widgets.add(new ResourceWidget(modeGame, new Rect((int)(width * .1), (int)(height * .75), (int)(width * .4), (int)(height * .95))));
         widgets.add(new ModeWidget(modeGame, new Rect((int)(width * .7), (int)(height * .75), (int)(width * .8), (int)(height * .8))));
         widgets.add(new TurnWidget(modeGame.getBoardState(), new Rect((int)(width * .7), (int)(height * .9), (int)(width * .9), (int)(height * .9))));
+        widgets.add(new MenuPopoutWidget(modeGame, new Rect( (int)(width *.95), (int)(height * .45), (int)(width*1.15), (int)(height * .55))
+                                                , new Rect((int)(width*.4), (int)(height*.5), (int)(width*.6), (int)(width*.6))));
         Hexagon[] hexes = hexBoard.getHexagons();
 
          for (int i = 0; i < hexes.length; i++) {
@@ -235,7 +237,7 @@ public class GameDrawer {
         }
     }
 
-    public void tick() {
+    public void tick(int timespan) {
         if (down) {
             if (alphaValue > 100) {
                 alphaValue -= 5;
@@ -248,6 +250,9 @@ public class GameDrawer {
             } else {
                 down = true;
             }
+        }
+        for (Widget widget : widgets) {
+            widget.tick(timespan);
         }
     }
 
@@ -276,6 +281,7 @@ public class GameDrawer {
     }
 
     public void handleTap(int x, int y) {
+        Log.d(TAG, "handleTap(): begin ... x " + x + " y " + y);
         for (Widget widget : widgets) {
             if (widget.contains(x, y)) {
                 widget.handleTap(x, y);

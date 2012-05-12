@@ -57,9 +57,9 @@ public class ResourceWidget implements Widget {
         for (int i = 0; i < GameDrawer.HEXAGON_COLORS.length; i++) {
             colorPaint.setColor(GameDrawer.HEXAGON_COLORS[i]);
             canvas.drawRect(new Rect(rect.left + 30, rect.top + i * demoHeight, rect.left + 60, rect.top + ((i+1)*demoHeight)), colorPaint);
-            Log.d(TAG, "draw(): mode game is " + modeGame);
+           /* Log.d(TAG, "draw(): mode game is " + modeGame);
             Log.d(TAG, "draw(): current player is " + modeGame.getBoardState().getCurrentPlayer());
-            Log.d(TAG, "draw(): index is " + i);
+            Log.d(TAG, "draw(): index is " + i); */
             Integer value = modeGame.getBoardState().getCurrentPlayer().getResourceCount(BoardState.Resource.values()[i]);
             if (value == null) {
                 value = 0;
@@ -70,6 +70,11 @@ public class ResourceWidget implements Widget {
 
     @Override
     public void handleTap(int x, int y) {
+
+    }
+
+    @Override
+    public void tick(int timespan) {
 
     }
 }

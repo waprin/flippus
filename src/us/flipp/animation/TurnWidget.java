@@ -33,4 +33,9 @@ public class TurnWidget implements Widget {
     public void handleTap(int x, int y) {
 
     }
+
+    @Override
+    public void tick(int timespan) {
+
+    }
 }

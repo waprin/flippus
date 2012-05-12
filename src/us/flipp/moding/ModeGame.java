@@ -39,7 +39,7 @@ public class ModeGame extends Mode {
 
     @Override
     public ModeAction tick(int timespan) {
-        gameDrawer.tick();
+        gameDrawer.tick(timespan);
         return ModeAction.NoAction;
     }
 
