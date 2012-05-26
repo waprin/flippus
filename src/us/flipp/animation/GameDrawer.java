@@ -29,15 +29,15 @@ public class GameDrawer {
 
     private int selected;
 
-    private Pair<Player, LogicalBoard.LogicalPoint> suggestedVillage;
-    private Pair<Player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>> suggestedTrack;
+    private LogicalBoard.LogicalPoint suggestedVillage;
+    private Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint> suggestedTrack;
     private List<Widget> widgets;
 
-    public void setSuggestedVillage(Pair<Player, LogicalBoard.LogicalPoint> suggestedVillage) {
+    public void setSuggestedVillage(LogicalBoard.LogicalPoint suggestedVillage) {
         this.suggestedVillage = suggestedVillage;
     }
 
-    public Pair<Player, LogicalBoard.LogicalPoint> getSuggestedVillage() {
+    public LogicalBoard.LogicalPoint getSuggestedVillage() {
         return this.suggestedVillage;
     }
 
@@ -133,13 +133,17 @@ public class GameDrawer {
 
 
         hexBoard = new HexBoard();
-        hexBoard.updateSize(width, height, modeGame.getBoardState());
+        Rect hexRect = new Rect(0, (int)(height*.1), width, (int)(height * .7));
+        hexBoard.updateSize(hexRect, modeGame.getBoardState());
         widgets = new LinkedList<Widget>();
         widgets.add(new ResourceWidget(modeGame, new Rect((int)(width * .1), (int)(height * .75), (int)(width * .4), (int)(height * .95))));
         widgets.add(new ModeWidget(modeGame, new Rect((int)(width * .7), (int)(height * .75), (int)(width * .8), (int)(height * .8))));
         widgets.add(new TurnWidget(modeGame.getBoardState(), new Rect((int)(width * .7), (int)(height * .9), (int)(width * .9), (int)(height * .9))));
         widgets.add(new MenuPopoutWidget(modeGame, new Rect( (int)(width *.95), (int)(height * .45), (int)(width*1.15), (int)(height * .55))
-                                                , new Rect((int)(width*.4), (int)(height*.5), (int)(width*.6), (int)(width*.6))));
+                                                             , new Rect((int)(width*.4), (int)(height*.5), (int)(width*.6), (int)(width*.6))));
+        widgets.add(new DiceWidget(modeGame, new Rect((int)(width*.5), (int)(height*.8), (int)(width*.6), (int)(height*.95))));
+        widgets.add(new StatusWidget(modeGame, new Rect(0, 0, width,  (int)(height * .1)), playerPaints));
+
         Hexagon[] hexes = hexBoard.getHexagons();
 
          for (int i = 0; i < hexes.length; i++) {
@@ -158,6 +162,8 @@ public class GameDrawer {
     public void drawBoard(Canvas canvas, BoardState boardState) {
 
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), whitePaint);
+        canvas.drawRect(hexBoard.getRect(), nonSelectedPaint);
+        canvas.drawRect(hexBoard.getInnerRect(), nonSelectedPaint);
 
         if (gameHeight < 0 || gameWidth < 0) {
             Log.e(TAG, "drawBoard(): Board being drawn without being initialized.");
@@ -186,30 +192,17 @@ public class GameDrawer {
         }
 
         if (suggestedVillage != null) {
-            HexBoard.GamePoint p = hexBoard.getGamePoint(suggestedVillage.second);
-            Paint playerVillagePaint = playerPaints[suggestedVillage.first.getId()];
+            HexBoard.GamePoint p = hexBoard.getGamePoint(suggestedVillage);
+            Paint playerVillagePaint = playerPaints[boardState.getCurrentPlayer().getId()];
             playerVillagePaint.setAlpha(alphaValue);
             canvas.drawCircle((float) p.visualPoint.x, (float) p.visualPoint.y, VILLAGE_RADIUS, playerVillagePaint);
             playerVillagePaint.setAlpha(255);
         }
 
         if (suggestedTrack != null) {
-            HexBoard.GamePoint first = hexBoard.getGamePoint(suggestedTrack.second.first);
-            List<LogicalBoard.LogicalPoint> neighbors = first.logicalPoint.getConnected();
-            List<HexBoard.GamePoint> gamePoints = hexBoard.getGamePoints(neighbors);
-            for (HexBoard.GamePoint p : gamePoints) {
-                canvas.drawCircle(p.visualPoint.x, p.visualPoint.y, VILLAGE_RADIUS, orangePaint);
-            }
-            HexBoard.GamePoint second = hexBoard.getGamePoint(suggestedTrack.second.second);
+            HexBoard.GamePoint first = hexBoard.getGamePoint(suggestedTrack.first);
+            HexBoard.GamePoint second = hexBoard.getGamePoint(suggestedTrack.second);
             canvas.drawLine(first.visualPoint.x, first.visualPoint.y, second.visualPoint.x, second.visualPoint.y, trackPaint);
-        }
-    }
-
-    private void drawIntersectionIndices(Canvas canvas, BoardState boardState) {
-        for (LogicalBoard.LogicalPoint p : boardState.getLogicalBoard().getPoints()) {
-            HexBoard.GamePoint gp = hexBoard.getGamePoint(p);
-            int index = p.getIndex();
-            canvas.drawText(String.valueOf(index), gp.visualPoint.x, gp.visualPoint.y, blackPaint);
         }
     }
 
@@ -264,15 +257,15 @@ public class GameDrawer {
         Log.d(TAG, "setSuggestedTrack(): begin");
         Log.d(TAG, "setSuggestedTrack(): first: " + hexBoard.getGamePoint(suggestedTrack.first).visualPoint.x + "," + hexBoard.getGamePoint(suggestedTrack.first).visualPoint.y);// + " second: " + second.visualPoint.x + "," + second.visualPoint.y);
         Log.d(TAG, "setSuggestedTrack(): second: " + hexBoard.getGamePoint(suggestedTrack.second).visualPoint.x + "," + hexBoard.getGamePoint(suggestedTrack.second).visualPoint.y);// + " second: " + second.visualPoint.x + "," + second.visualPoint.y);
-        this.suggestedTrack = new Pair<Player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>>(player, suggestedTrack);
-}
+        this.suggestedTrack = suggestedTrack;
+    }
 
 
     public LogicalBoard.LogicalPoint getClosestConnectedPoint(LogicalBoard.LogicalPoint logicalPoint, int x, int y) {
         return hexBoard.getClosestConnectedPoint(logicalPoint, x, y);
     }
 
-    public Pair<Player,Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>> getSuggestedTrack() {
+    public Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint> getSuggestedTrack() {
         return suggestedTrack;
     }
 
@@ -287,6 +280,11 @@ public class GameDrawer {
                 widget.handleTap(x, y);
             }
         }
+    }
+
+    public void draw(Canvas canvas, BoardState boardState) {
+        drawBoard(canvas, boardState);
+        drawWidgets(canvas, boardState);
     }
 }
 

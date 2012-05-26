@@ -16,6 +16,10 @@ public class CircularLinkedList<T> {
         current = null;
     }
 
+    public List<T> getList() {
+        return this.list;
+    }
+
     public void add(T t) {
         this.list.add(t);
         current = null;

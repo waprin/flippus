@@ -1,6 +1,7 @@
 package us.flipp.animation;
 
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.util.Log;
 import android.util.Pair;
 import us.flipp.simulation.BoardState;
@@ -14,11 +15,11 @@ public class HexBoard {
     private List<GamePoint> allPoints;
 
     private Hexagon[] hexagons;
-    private int totalHeight;
-    private int totalWidth;
+    private Rect rect;
+    private Rect innerRect;
 
     public boolean contains(int x, int y) {
-        return  x < totalWidth && y < totalHeight;
+        return rect.contains(x, y);
     }
 
     public List<GamePoint> getGamePoints(List<LogicalBoard.LogicalPoint> logicalPoints) {
@@ -62,6 +63,14 @@ public class HexBoard {
         }
     }
 
+    public Rect getRect() {
+        return this.rect;
+    }
+
+    public Rect getInnerRect() {
+        return innerRect;
+    }
+
     private LogicalBoard.LogicalPoint getClosesPoint(int x, int y, Collection<GamePoint> gamePoints) {
         Log.d(TAG, "getClosestPoint: " + x + " " + y);
 
@@ -101,26 +110,31 @@ public class HexBoard {
             return this.hexagons;
     }
 
-    public void updateSize(int width, int height, BoardState boardState) {
+    public void updateSize(Rect rect, BoardState boardState) {
+        this.rect = rect;
         hexagons = new Hexagon[BoardState.TOTAL_HEXES];
         allPoints = new ArrayList<GamePoint>();
 
-        int spaceWidthMargin = width / 10;
-        int boardLeft = spaceWidthMargin;
-        int boardWidth = (width - spaceWidthMargin) - spaceWidthMargin;
 
-        int spaceHeightMargin = height / 10;
-        int boardTop = spaceHeightMargin;
-        int boardHeight = (height - spaceHeightMargin) - spaceHeightMargin;
+        int spaceWidthMargin = rect.width() / 10;
+        int boardLeft = rect.left + spaceWidthMargin;
+        int boardWidth = (rect.width() - spaceWidthMargin) - spaceWidthMargin;
+
+        int spaceHeightMargin = rect.height() / 10;
+        int boardTop = rect.top + spaceHeightMargin;
+        int boardHeight = (rect.height() - spaceHeightMargin) - spaceHeightMargin;
 
         int hexWidth = boardWidth / BoardState.ROW_MAX;
-        int hexHeight = boardHeight / BoardState.rowCounts.length;
+        // TODO not totally sure if we can always divide by 2 for everybody board (but then again who cares)
+        int hexHeight = boardHeight / 4;
 
-        int hexLineWidth = hexWidth / 2;
-        int hexLineHeight = hexHeight / 3;
+        int hexLineWidth = (hexWidth / 2) + 1;
+        int hexLineHeight = (hexHeight / 3) + 1;
 
         int index = 0;
 
+        innerRect = new Rect(boardLeft, boardTop,
+                             boardLeft + boardWidth, boardTop + boardHeight);
 
         int maxCount = 0;
         for (int i = 0; i < BoardState.rowCounts.length; i++) {
@@ -128,6 +142,7 @@ public class HexBoard {
             if (count > maxCount) maxCount = count;
             int diff = BoardState.ROW_MAX - count;
             int outerLeftOffset = boardLeft + (hexLineWidth * diff);
+            outerLeftOffset += hexLineWidth;
             int topOffset = boardTop + ( i * (hexLineHeight * 2) );
             for (int j = 0; j < count; j++) {
                 LogicalBoard.LogicalHex logicalHex = boardState.getLogicalBoard().getRows().get(i).getHex(j);
@@ -140,8 +155,7 @@ public class HexBoard {
                 }
             }
         }
-        totalHeight = BoardState.rowCounts.length * hexHeight;
-        totalWidth = maxCount * hexWidth;
+        //totalHeight = BoardState.rowCounts.length * hexHeight;
+        //totalWidth = maxCount * hexWidth;
     }
-
 }

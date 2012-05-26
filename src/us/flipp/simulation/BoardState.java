@@ -5,40 +5,34 @@ import us.flipp.utility.CircularLinkedList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class BoardState {
 
     private static final String TAG = BoardState.class.getName();
 
+    public enum GameState {
+        BUILD_FIRST_VILLAGE,
+        BUILD_FIRST_TRACK,
+        BUILD_SECOND_VILLAGE,
+        BUILD_SECOND_TRACK,
+        NORMAL
+    }
+
+    private GameState gameState;
+
+    public GameState getGameState() {
+        return this.gameState;
+    }
+
     public static int[] rowCounts = {3, 4, 5, 4 ,3};
     public static final int ROW_MAX = 5;
     public static final int TOTAL_HEXES = 19;
-    public static int [] subRowCounts =  {3, 4, 4, 5, 5, 6, 6, 5, 5, 4, 4, 3};
-    public static int totalIntersections;
-    public static int[][] intersectionCoords;
-    public static Pair<Integer, Integer>[] reverseCoords;
-
     private LogicalBoard logicalBoard;
 
     public LogicalBoard getLogicalBoard() {
         return logicalBoard;
     }
-/*
-    static {
-        int intersectionIndex = 0;
-        intersectionCoords = new int[subRowCounts.length][];
-        for (int i = 0; i < subRowCounts.length; i++) {
-            intersectionCoords[i] = new int[subRowCounts[i]];
-            for (int j = 0; j < subRowCounts[i]; j++) {
-                intersectionCoords[i][j] = intersectionIndex;
-                reverseCoords[intersectionIndex] = new Pair<Integer, Integer>(i, j);
-                intersectionIndex++;
-            }
-        }
-        totalIntersections = intersectionIndex;
-    }
-  */
+
     public BoardState() {
        logicalBoard = new LogicalBoard();
        this.players = new CircularLinkedList<Player>();
@@ -52,6 +46,9 @@ public class BoardState {
         firstPlayer = currentPlayer;
 
        intersections = new ArrayList<Intersection>();
+
+        this.gameState = GameState.BUILD_FIRST_VILLAGE;
+        this.tracks = new ArrayList<Track>();
     }
 
     private CircularLinkedList<Player> players;
@@ -60,6 +57,10 @@ public class BoardState {
 
     public Player getCurrentPlayer() {
         return currentPlayer;
+    }
+
+    public List<Player> getAllPlayers() {
+        return players.getList();
     }
 
     public boolean isFirstPlayerCurrent() {
@@ -72,6 +73,7 @@ public class BoardState {
         RED,
         YELLOW,
     }
+
     public class Intersection {
         public LogicalBoard.LogicalPoint point;
         public Player player;
@@ -80,18 +82,57 @@ public class BoardState {
             this.player = player;
         }
     }
+
     private List<Intersection> intersections;
+
+    public class Track {
+        public LogicalBoard.LogicalPoint first;
+        public LogicalBoard.LogicalPoint second;
+        public Player player;
+
+        public Track(LogicalBoard.LogicalPoint first, LogicalBoard.LogicalPoint second, Player player) {
+            this.first = first;
+            this.second = second;
+            this.player = player;
+        }
+
+    }
+
+    private List<Track> tracks;
+
+    public List<Track> getTracks() {
+        return tracks;
+    }
 
     public List<Intersection> getIntersections() {
         return intersections;
     }
 
-   public void buildVillage(LogicalBoard.LogicalPoint logicalPoint, Player player) {
-       intersections.add(new Intersection(logicalPoint, player));
+   public void buildVillage(LogicalBoard.LogicalPoint logicalPoint) {
+       intersections.add(new Intersection(logicalPoint, currentPlayer));
+       if (gameState == GameState.BUILD_SECOND_TRACK) {
+            List<LogicalBoard.LogicalHex> adjacentHexes = logicalPoint.getHexes();
+            for (LogicalBoard.LogicalHex hex : adjacentHexes) {
+                BoardState.Resource resource = hex.getHexState().getResource();
+                int diceValue = hex.getHexState().getDiceValue();
+                currentPlayer.increaseResourceCount(resource, diceValue);
+            }
+       }
    }
+
+   public void buildTrack(Pair<LogicalBoard.LogicalPoint , LogicalBoard.LogicalPoint> suggestedTrack) {
+        tracks.add(new Track(suggestedTrack.first, suggestedTrack.second, currentPlayer));
+   }
+
 
    public void endTurn() {
        currentPlayer = players.getNext();
+       if (this.isFirstPlayerCurrent()) {
+            if (gameState == BoardState.GameState.BUILD_FIRST_VILLAGE) {
+                gameState = GameState.BUILD_FIRST_TRACK;
+            } else if (gameState == GameState.BUILD_FIRST_TRACK) {
+                gameState = GameState.BUILD_SECOND_TRACK;
+            }
+       }
    }
-
 }
