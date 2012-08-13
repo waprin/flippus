@@ -5,7 +5,9 @@ import android.nfc.Tag;
 import android.util.Log;
 import us.flipp.animation.Hexagon;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Random;
 
@@ -13,33 +15,15 @@ public class LogicalBoard {
 
     private static final String TAG = LogicalBoard.class.getName();
 
-    private List<LogicalHexRow> rows;
-    private ArrayList<LogicalHex> allHexes;
-
-    public List<LogicalHexRow> getRows() {
-        return rows;
-    }
-
-    public LogicalHex getHexByIndex(int index) {
-        return allHexes.get(index);
-    }
-
-    private ArrayList<LogicalPoint> logicalPoints;
-
-    public LogicalPoint getLogicalPointByIndex(int i) {
-        return logicalPoints.get(i);
-    }
-
-
     static public class HexState {
-        private BoardState.Resource resource;
+        private Resource resource;
         private int diceValue;
 
-        public BoardState.Resource getResource() {
+        public Resource getResource() {
             return resource;
         }
 
-        public void setResource(BoardState.Resource resource) {
+        public void setResource(Resource resource) {
             this.resource = resource;
         }
 
@@ -56,83 +40,16 @@ public class LogicalBoard {
         }
     }
 
-    static public class LogicalPoint {
-        private List<LogicalPoint> connected;
-        private int index;
-        private List<LogicalHex> hexes;
-
-        public LogicalPoint(int index) {
-            this.index = index;
-            this.connected = new ArrayList<LogicalPoint>();
-            this.hexes = new ArrayList<LogicalHex>();
-        }
-
-        public void addConnected(LogicalPoint point) {
-            connected.add(point);
-        }
-
-        public List<LogicalPoint> getConnected() {
-            return connected;
-        }
-
-        public int getIndex() {
-            return index;
-        }
-
-        public List<LogicalHex> getHexes() {
-            return hexes;
-        }
-
-        public void addHexagon(LogicalHex logicalHex) {
-            hexes.add(logicalHex);
-        }
-    }
-
-    public void print() {
-        Log.d(TAG, "print() begin");
-        for (LogicalHexRow row : rows) {
-            Log.d(TAG, "print(): row size is " + row.size);
-            for (int i = 0; i < row.getSize(); i++) {
-                Log.d(TAG, "print(): cell value is " + row.getHex(i));
-            }
-        }
-    }
-
-    private static void linkPoints(LogicalPoint first, LogicalPoint second) {
-        if (first == second) {
-            Log.e(TAG, "linkPoints(): SERIOUS ERROR: trying to link a point to itself");
-        }
-        Log.d(TAG, "linkPoints(): linking together nodes " + first.index + " and node " + second.index);
-        first.addConnected(second);
-        second.addConnected(first);
-    }
-
-    private LogicalPoint newPoint() {
-        LogicalPoint point = new LogicalPoint(logicalPoints.size());
-        logicalPoints.add(point);
-        Log.d(TAG, "adding logical point with index " + point.getIndex());
-        return point;
-    }
-
     public class LogicalHex {
-
         private List<LogicalPoint> points;
-        public LogicalPoint getPoint(int index) {
-            return points.get(index);
-        }
-
         private HexState hexState;
 
-        public HexState getHexState() {
-            return hexState;
-        }
-
         public LogicalHex(LogicalHex leftAbove, LogicalHex rightAbove, LogicalHex left) {
-            int length = BoardState.Resource.values().length;
+            int length = Resource.values().length;
             Random rand = new Random();
-           hexState = new HexState();
-           hexState.setResource(BoardState.Resource.values()[rand.nextInt(length)]);
-           hexState.setDiceValue(rand.nextInt(13));
+            hexState = new HexState();
+            hexState.setResource(Resource.values()[rand.nextInt(length)]);
+            hexState.setDiceValue(rand.nextInt(13));
 
 
             LogicalPoint firstPoint;
@@ -189,11 +106,52 @@ public class LogicalBoard {
             points.add(sixthPoint);
         }
 
+        public LogicalPoint getPoint(int index) {
+            return points.get(index);
+        }
+
+        public HexState getHexState() {
+            return hexState;
+        }
+
     }
 
-    public List<LogicalPoint> getPoints() {
-        return logicalPoints;
+    static public class LogicalPoint {
+        private List<LogicalPoint> mConnected;
+        private int mIndex;
+        private List<LogicalHex> mHexes;
+
+        public LogicalPoint(int index) {
+            mIndex = index;
+            mConnected = new ArrayList<LogicalPoint>();
+            mHexes = new ArrayList<LogicalHex>();
+        }
+
+        public void addConnected(LogicalPoint point) {
+            mConnected.add(point);
+        }
+
+        public List<LogicalPoint> getConnected() {
+            return mConnected;
+        }
+
+        public int getIndex() {
+            return mIndex;
+        }
+
+        public void addHexagon(LogicalHex logicalHex) {
+            mHexes.add(logicalHex);
+        }
+
+        public EnumMap<Resource, Integer> getStartingResources() {
+            EnumMap<Resource, Integer> resources = new EnumMap<Resource, Integer>(Resource.class);
+            for (LogicalHex hex : mHexes) {
+                resources.put(hex.getHexState().getResource(), 1);
+            }
+            return resources;
+        }
     }
+
 
     public class LogicalHexRow {
         private int size;
@@ -254,6 +212,11 @@ public class LogicalBoard {
         }
     }
 
+
+    private List<LogicalHexRow> rows;
+    private ArrayList<LogicalHex> allHexes;
+    private ArrayList<LogicalPoint> logicalPoints;
+
     public LogicalBoard() {
         rows = new ArrayList<LogicalHexRow>();
         allHexes = new ArrayList<LogicalHex>();
@@ -269,5 +232,40 @@ public class LogicalBoard {
         rows.add(fourthRow);
         rows.add(fifthRow);
     }
+
+    public List<LogicalHexRow> getRows() {
+        return rows;
+    }
+
+    public LogicalHex getHexByIndex(int index) {
+        return allHexes.get(index);
+    }
+
+    public void print() {
+        Log.d(TAG, "print() begin");
+        for (LogicalHexRow row : rows) {
+            Log.d(TAG, "print(): row size is " + row.size);
+            for (int i = 0; i < row.getSize(); i++) {
+                Log.d(TAG, "print(): cell value is " + row.getHex(i));
+            }
+        }
+    }
+
+    private static void linkPoints(LogicalPoint first, LogicalPoint second) {
+        if (first == second) {
+            Log.e(TAG, "linkPoints(): SERIOUS ERROR: trying to link a point to itself");
+        }
+        Log.d(TAG, "linkPoints(): linking together nodes " + first.mIndex + " and node " + second.mIndex);
+        first.addConnected(second);
+        second.addConnected(first);
+    }
+
+    private LogicalPoint newPoint() {
+        LogicalPoint point = new LogicalPoint(logicalPoints.size());
+        logicalPoints.add(point);
+        Log.d(TAG, "adding logical point with index " + point.getIndex());
+        return point;
+    }
+
 
 }

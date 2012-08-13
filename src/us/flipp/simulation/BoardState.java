@@ -18,20 +18,39 @@ public class BoardState {
         NORMAL
     }
 
-    private GameState gameState;
-
-    public GameState getGameState() {
-        return this.gameState;
+    public class Intersection {
+        public LogicalBoard.LogicalPoint point;
+        public Player player;
+        public Intersection(LogicalBoard.LogicalPoint point, Player player) {
+            this.point = point;
+            this.player = player;
+        }
     }
 
+    public class Track {
+        public LogicalBoard.LogicalPoint first;
+        public LogicalBoard.LogicalPoint second;
+        public Player player;
+
+        public Track(LogicalBoard.LogicalPoint first, LogicalBoard.LogicalPoint second, Player player) {
+            this.first = first;
+            this.second = second;
+            this.player = player;
+        }
+    }
+
+    private GameState gameState;
     public static int[] rowCounts = {3, 4, 5, 4 ,3};
     public static final int ROW_MAX = 5;
     public static final int TOTAL_HEXES = 19;
     private LogicalBoard logicalBoard;
 
-    public LogicalBoard getLogicalBoard() {
-        return logicalBoard;
-    }
+    private CircularLinkedList<Player> players;
+    private Player currentPlayer;
+    private Player firstPlayer;
+    private List<Intersection> intersections;
+    private List<Track> tracks;
+
 
     public BoardState() {
        logicalBoard = new LogicalBoard();
@@ -51,9 +70,10 @@ public class BoardState {
         this.tracks = new ArrayList<Track>();
     }
 
-    private CircularLinkedList<Player> players;
-    private Player currentPlayer;
-    private Player firstPlayer;
+
+    public LogicalBoard getLogicalBoard() {
+        return logicalBoard;
+    }
 
     public Player getCurrentPlayer() {
         return currentPlayer;
@@ -63,42 +83,15 @@ public class BoardState {
         return players.getList();
     }
 
+    public GameState getGameState() {
+        return this.gameState;
+    }
+
+
     public boolean isFirstPlayerCurrent() {
         return firstPlayer == currentPlayer;
     }
 
-    public enum Resource {
-        BLUE,
-        GREEN,
-        RED,
-        YELLOW,
-    }
-
-    public class Intersection {
-        public LogicalBoard.LogicalPoint point;
-        public Player player;
-        public Intersection(LogicalBoard.LogicalPoint point, Player player) {
-            this.point = point;
-            this.player = player;
-        }
-    }
-
-    private List<Intersection> intersections;
-
-    public class Track {
-        public LogicalBoard.LogicalPoint first;
-        public LogicalBoard.LogicalPoint second;
-        public Player player;
-
-        public Track(LogicalBoard.LogicalPoint first, LogicalBoard.LogicalPoint second, Player player) {
-            this.first = first;
-            this.second = second;
-            this.player = player;
-        }
-
-    }
-
-    private List<Track> tracks;
 
     public List<Track> getTracks() {
         return tracks;
@@ -111,19 +104,13 @@ public class BoardState {
    public void buildVillage(LogicalBoard.LogicalPoint logicalPoint) {
        intersections.add(new Intersection(logicalPoint, currentPlayer));
        if (gameState == GameState.BUILD_SECOND_TRACK) {
-            List<LogicalBoard.LogicalHex> adjacentHexes = logicalPoint.getHexes();
-            for (LogicalBoard.LogicalHex hex : adjacentHexes) {
-                BoardState.Resource resource = hex.getHexState().getResource();
-                int diceValue = hex.getHexState().getDiceValue();
-                currentPlayer.increaseResourceCount(resource, diceValue);
-            }
+           currentPlayer.increaseResourceCount(logicalPoint.getStartingResources());
        }
    }
 
    public void buildTrack(Pair<LogicalBoard.LogicalPoint , LogicalBoard.LogicalPoint> suggestedTrack) {
         tracks.add(new Track(suggestedTrack.first, suggestedTrack.second, currentPlayer));
    }
-
 
    public void endTurn() {
        currentPlayer = players.getNext();

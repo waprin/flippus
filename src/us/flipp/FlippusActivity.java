@@ -26,14 +26,17 @@ public class FlippusActivity extends Activity
       /*
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
 
         */
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.main);
         gameView = (GameView) findViewById(R.id.game_view_id);
 
-        topButton = (Button) findViewById(R.id.top_button);
+     /*   topButton = (Button) findViewById(R.id.top_button);
         bottomButton = (Button) findViewById(R.id.bottom_button);
 
         topButton.setOnClickListener(new OnClickListener() {
@@ -49,6 +52,6 @@ public class FlippusActivity extends Activity
                 String nextString = gameView.handleBottomButton();
                 bottomButton.setText(nextString);
             }
-        });
+        });*/
     }
 }

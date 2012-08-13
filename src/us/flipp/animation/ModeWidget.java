@@ -7,7 +7,7 @@ import us.flipp.moding.GameStateMachine;
 import us.flipp.moding.ModeGame;
 import us.flipp.simulation.BoardState;
 
-public class ModeWidget implements Widget {
+public class ModeWidget {
 
     private Rect rect;
     private Paint textPaint;
@@ -26,12 +26,7 @@ public class ModeWidget implements Widget {
         borderPaint.setStyle(Paint.Style.STROKE);
     }
 
-    @Override
-    public boolean contains(int x, int y) {
-        return rect.contains(x, y);
-    }
 
-    @Override
     public void draw(Canvas canvas, BoardState boardState) {
 
         Paint.FontMetrics fm = new Paint.FontMetrics();
@@ -41,12 +36,10 @@ public class ModeWidget implements Widget {
         canvas.drawRect(rect, borderPaint);
     }
 
-    @Override
     public void handleTap(int x, int y) {
 
     }
 
-    @Override
     public void tick(int timespan) {
 
     }

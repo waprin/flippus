@@ -12,7 +12,7 @@ import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MenuPopoutWidget implements Widget {
+public class MenuPopoutWidget {
 
     private static final String TAG = MenuPopoutWidget.class.getName();
 
@@ -86,7 +86,7 @@ public class MenuPopoutWidget implements Widget {
         this.x_offset = 0;
         this.openOffset = 0.f;
     }
-
+       /*
     @Override
     public boolean contains(int x, int y) {
         switch(state) {
@@ -106,8 +106,8 @@ public class MenuPopoutWidget implements Widget {
         }
         return false;
     }
+    */
 
-    @Override
     public void draw(Canvas canvas, BoardState boardState) {
         switch (state) {
             case CLOSED:
@@ -135,7 +135,6 @@ public class MenuPopoutWidget implements Widget {
         }
     }
 
-    @Override
     public void handleTap(int x, int y) {
         Log.d(TAG, "handleTap(): begin ... ");
         switch (this.state) {
@@ -175,7 +174,6 @@ public class MenuPopoutWidget implements Widget {
         this.selectedRect = null;
     }
 
-    @Override
     public void tick(int timespan) {
         switch (state) {
             case MOVING_LEFT:

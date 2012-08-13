@@ -11,7 +11,7 @@ import us.flipp.simulation.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StatusWidget implements Widget {
+public class StatusWidget  {
 
     private ModeGame modeGame;
     private Rect rect;
@@ -22,31 +22,24 @@ public class StatusWidget implements Widget {
         int width = rect.width();
         int boxWidth = width / ModeGame.MAX_PLAYERS;
 
-
+           /*
         this.playerStatuses = new ArrayList<Pair<Player, Rect>>();
         List<Player> players = modeGame.getBoardState().getAllPlayers();
         for (int i = 0; i < ModeGame.MAX_PLAYERS; i++) {
             this.playerStatuses.add(new Pair<Player, Rect>(players.get(i), new Rect(rect.left + (boxWidth * i), rect.top, rect.left + (boxWidth * i + boxWidth), rect.bottom)));
-        }
+        }    */
     }
 
-    @Override
-    public boolean contains(int x, int y) {
-        return false;
-    }
 
-    @Override
     public void draw(Canvas canvas, BoardState boardState) {
         for (int i = 0; i < playerStatuses.size(); i++) {
             canvas.drawRect(this.playerStatuses.get(i).second, this.paints[i]);
         }
     }
 
-    @Override
     public void handleTap(int x, int y) {
     }
 
-    @Override
     public void tick(int timespan) {
     }
 }

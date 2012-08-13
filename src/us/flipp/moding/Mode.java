@@ -2,24 +2,38 @@ package us.flipp.moding;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Rect;
+import us.flipp.R;
 
 public class Mode {
 
-    private Mode pendMode;
-    private Context context;
+    private static final String TAG = Mode.class.getName();
 
-    public void screenChanged(int width, int height) {
+    protected Mode mPendMode;
+    protected Context mContext;
 
-    }
+    protected int mScreenWidth = 240;
+    protected int mScreenHeight = 320;
+
+    Bitmap mBackground;
 
     static public enum ModeAction {
         NoAction, ChangeMode, Exit
     }
 
+    public void screenChanged(int width, int height) {
+        mScreenWidth = width;
+        mScreenHeight = height;
+    }
+
+
     public void setup(Context context)
     {
-        this.context = context;
+        mContext = context;
+        mBackground = BitmapFactory.decodeStream(mContext.getResources().openRawResource(R.raw.table));
     }
 
     public String getButtonText() {
@@ -31,7 +45,7 @@ public class Mode {
     }
 
     public void redraw(Canvas canvas) {
-
+        canvas.drawBitmap(mBackground, null, new Rect(0, 0, canvas.getWidth(), canvas.getHeight()), null);
     }
 
     public void handleTap(int x, int y) {
@@ -47,11 +61,9 @@ public class Mode {
         return "";
     }
 
-
-
     public Mode teardown() {
-        Mode pendMode = this.pendMode;
-        this.pendMode = null;
+        Mode pendMode = mPendMode;
+        mPendMode = null;
         return pendMode;
     }
 

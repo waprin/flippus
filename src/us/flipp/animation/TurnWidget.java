@@ -6,7 +6,7 @@ import android.graphics.Rect;
 import us.flipp.simulation.BoardState;
 import us.flipp.simulation.Player;
 
-public class TurnWidget implements Widget {
+public class TurnWidget {
 
     private Rect rect;
     private Paint textPaint;
@@ -19,22 +19,14 @@ public class TurnWidget implements Widget {
         textPaint.setARGB(255, 0, 0, 0);
     }
 
-    @Override
-    public boolean contains(int x, int y) {
-        return rect.contains(x, y);
-    }
-
-    @Override
     public void draw(Canvas canvas, BoardState boardState) {
         canvas.drawText(boardState.getCurrentPlayer().toString(), rect.left, rect.top, textPaint);
     }
 
-    @Override
     public void handleTap(int x, int y) {
 
     }
 
-    @Override
     public void tick(int timespan) {
 
     }
