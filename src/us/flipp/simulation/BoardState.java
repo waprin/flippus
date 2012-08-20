@@ -56,9 +56,8 @@ public class BoardState {
        logicalBoard = new LogicalBoard();
        this.players = new CircularLinkedList<Player>();
 
-        for (int i = 0; i < 4; i++) {
-            Player player = new Player();
-            player.setId(i);
+        for (Player.PlayerID id : Player.PlayerID.values()) {
+            Player player = new Player(id);
             players.add(player);
         }
         currentPlayer = players.getNext();

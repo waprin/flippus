@@ -18,12 +18,9 @@ public class GameDrawer {
     private static final String TAG = GameDrawer.class.getName();
     private static final float VILLAGE_RADIUS = 8.0f;
 
-    private Paint selectedPaint;
     private Paint nonSelectedPaint;
 
     private HexBoard hexBoard;
-
-    private int selected;
 
     private LogicalBoard.LogicalPoint suggestedVillage;
     private Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint> suggestedTrack;
@@ -32,7 +29,7 @@ public class GameDrawer {
     private int gameWidth = -254;
     private int gameHeight = -253;
 
-    private Paint[] playerPaints;
+    private EnumMap<Player.PlayerID, Paint> mPlayerPaints;
 
     private boolean down;
 
@@ -61,30 +58,23 @@ public class GameDrawer {
         nonSelectedPaint.setStyle(Paint.Style.STROKE);
         nonSelectedPaint.setStrokeWidth(3.0f);
 
-        selectedPaint = new Paint(nonSelectedPaint);
-        selectedPaint.setColor(Color.WHITE);
-
         mResourceBitmaps = resourceBitmaps;
 
-        playerPaints = new Paint[ModeGame.MAX_PLAYERS];
+        mPlayerPaints = new EnumMap<Player.PlayerID, Paint>(Player.PlayerID.class);
 
         Paint playerPaint = new Paint();
         playerPaint.setStyle(Paint.Style.FILL);
-        playerPaint.setARGB(255, 248, 123, 180);
-        playerPaints[0] = playerPaint;
+        playerPaint.setColor(context.getResources().getInteger(R.integer.player_1_color));
+        mPlayerPaints.put(Player.PlayerID.PLAYER_1, playerPaint);
         Paint player2Paint = new Paint(playerPaint);
         player2Paint.setARGB(255, 130, 220, 180);
-        playerPaints[1] = player2Paint;
+        mPlayerPaints.put(Player.PlayerID.PLAYER_2, player2Paint);
         Paint player3Paint = new Paint(playerPaint);
         player3Paint.setARGB(255, 110, 80, 140);
-        playerPaints[2] = player3Paint;
+        mPlayerPaints.put(Player.PlayerID.PLAYER_3, player3Paint);
         Paint player4Paint = new Paint(playerPaint);
         player4Paint.setARGB(255, 100, 190, 120);
-        playerPaints[3] = player4Paint;
-
-
-
-        selected = -1;
+        mPlayerPaints.put(Player.PlayerID.PLAYER_4, player4Paint);
     }
 
     public void setSuggestedVillage(LogicalBoard.LogicalPoint suggestedVillage) {
@@ -135,12 +125,12 @@ public class GameDrawer {
         for (BoardState.Intersection intersection : boardState.getIntersections()) {
             LogicalBoard.LogicalPoint logicalPoint = intersection.point;
             HexBoard.GamePoint gamePoint = hexBoard.getGamePoint(logicalPoint);
-            canvas.drawCircle((float) gamePoint.visualPoint.x, (float) gamePoint.visualPoint.y, VILLAGE_RADIUS, playerPaints[intersection.player.getId()]);
+            canvas.drawCircle((float) gamePoint.visualPoint.x, (float) gamePoint.visualPoint.y, VILLAGE_RADIUS, mPlayerPaints.get(intersection.player.getPlayerID()));
         }
 
         if (suggestedVillage != null) {
             HexBoard.GamePoint p = hexBoard.getGamePoint(suggestedVillage);
-            Paint playerVillagePaint = playerPaints[boardState.getCurrentPlayer().getId()];
+            Paint playerVillagePaint = mPlayerPaints.get(boardState.getCurrentPlayer().getPlayerID());
             playerVillagePaint.setAlpha(alphaValue);
             canvas.drawCircle((float) p.visualPoint.x, (float) p.visualPoint.y, VILLAGE_RADIUS, playerVillagePaint);
             playerVillagePaint.setAlpha(255);

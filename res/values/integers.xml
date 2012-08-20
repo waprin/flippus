@@ -9,4 +9,13 @@
     <integer name="resource_subpanel_height">30</integer>
     <integer name="resource_subpanel_border">5</integer>
 
+    <integer name="player_status_panel_height">40</integer>
+    <integer name="player_status_panel_width">150</integer>
+
+    <integer name="pie_chart_offset_left">5</integer>
+    <integer name="pie_chart_offset_top">2</integer>
+
+    <integer name="player_1_color">5626319</integer>   <!--0x55d9cf teal -->
+
 </resources>
+

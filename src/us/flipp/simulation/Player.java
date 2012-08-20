@@ -12,10 +12,22 @@ public class Player {
 
     private static final String TAG = Player.class.getName();
 
-    private int id;
+    public PlayerID getPlayerID() {
+        return mPlayerID;
+    }
+
+    public enum PlayerID {
+        PLAYER_1,
+        PLAYER_2,
+        PLAYER_3,
+        PLAYER_4
+    }
+
+    private PlayerID mPlayerID;
     private EnumMap<Resource, Integer> mResources;
 
-    public Player() {
+    public Player(PlayerID playerID) {
+        mPlayerID = playerID;
         mResources = new EnumMap<Resource, Integer>(Resource.class);
         for (Resource resource : Resource.values()) {
             mResources.put(resource, 0);
@@ -31,17 +43,4 @@ public class Player {
             mResources.put(resource, mResources.get(resource) + resources.get(resource));
         }
     }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String toString() {
-        return "Player " + Integer.toString(id+1);
-    }
-
 }

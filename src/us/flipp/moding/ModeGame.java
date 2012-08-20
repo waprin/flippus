@@ -11,9 +11,12 @@ import us.flipp.animation.Widget;
 import us.flipp.animation.WidgetPage;
 import us.flipp.simulation.BoardState;
 import us.flipp.simulation.LogicalBoard;
+import us.flipp.simulation.Player;
 import us.flipp.simulation.Resource;
 
 import java.util.EnumMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ModeGame extends Mode {
 
@@ -22,19 +25,19 @@ public class ModeGame extends Mode {
     private GameDrawer gameDrawer;
     private BoardState boardState;
 
-
-    static public final int MAX_PLAYERS = 4;
-
-
     private WidgetPage mResourceCountWidgets;
     private EnumMap<Resource, Widget> mResourceWidgetMap;
 
     private Widget mResourcePane;
 
     private EnumMap<Resource, Bitmap> mResourceBitmaps;
+    private EnumMap<Player.PlayerID, Widget> mPlayerStatusWidgets;
+
+    private Map<Player.PlayerID, Bitmap> mStatusPanelBitmaps;
 
     private int mResourceSubpanelHeight;
     private int mResourceSubpanelBorder;
+    private WidgetPage mStatusWidgetPage;
 
     @Override
     public ModeAction tick(int timespan) {
@@ -50,10 +53,6 @@ public class ModeGame extends Mode {
         boardState.getLogicalBoard().print();
         gameDrawer.updateSize(width, height, boardState);
 
-        /*Vector2i resourceCountOffset = new Vector2i(mScreenWidth / 2 - (mContext.getResources().getInteger(R.integer.resource_display_width) * 5) / 2
-                ,(mScreenHeight - mContext.getResources().getInteger(R.integer.resource_display_height)));
-        mResourceCountWidgets.setOffset(resourceCountOffset);
-          */
         Bitmap pane = BitmapFactory.decodeStream(mContext.getResources().openRawResource(R.raw.resource_panel));
 
         Rect resourcePaneRect = new Rect(mScreenWidth - pane.getWidth(), mScreenHeight - pane.getHeight(), mScreenWidth, mScreenHeight);
@@ -76,9 +75,38 @@ public class ModeGame extends Mode {
                     "screen height is " + mScreenHeight + " and innerct bottom is " + innerRect.bottom);
 
             Widget resourceWidget = new Widget(this.createBitmap(innerRect, Resource.values()[i]), innerRect);
+
+            resourceWidget.setFontSize(10);
             mResourceWidgetMap.put(Resource.values()[i], resourceWidget);
             mResourceCountWidgets.addWidget(resourceWidget);
         }
+
+        int playerStatusPanelHeight = mContext.getResources().getInteger(R.integer.player_status_panel_height);
+        int playerStatusPanelWidth = mContext.getResources().getInteger(R.integer.player_status_panel_width);
+
+        mStatusWidgetPage = new WidgetPage();
+        mPlayerStatusWidgets = new EnumMap<Player.PlayerID, Widget>(Player.PlayerID.class);
+
+        for (int i = 0; i < Player.PlayerID.values().length; i++) {
+            Rect innerRect = new Rect(0, mScreenHeight - (playerStatusPanelHeight * (i+1)), playerStatusPanelWidth, mScreenHeight - (playerStatusPanelHeight * i) );
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(mStatusPanelBitmaps.get(Player.PlayerID.values()[i]), innerRect.width(), innerRect.height(), false);
+            Widget statusWidget = new Widget(scaledBitmap, innerRect);
+            mStatusWidgetPage.addWidget(statusWidget);
+            statusWidget.setBorderSize(4.0f);
+            Bitmap piechartBitmap = BitmapFactory.decodeStream(mContext.getResources().openRawResource(R.raw.piechart));
+            int pieChartOffsetLeft = mContext.getResources().getInteger(R.integer.pie_chart_offset_left);
+            int pieChartOffsetTop = mContext.getResources().getInteger(R.integer.pie_chart_offset_top);
+            Rect piechartRect = new Rect(innerRect.left + pieChartOffsetLeft,
+                    innerRect.top + pieChartOffsetTop,
+                    innerRect.left + pieChartOffsetLeft + piechartBitmap.getWidth(),
+                    innerRect.top + pieChartOffsetTop + piechartBitmap.getHeight());
+            Widget piechartWidget = new Widget(piechartBitmap, piechartRect);
+            piechartWidget.setText("3");
+            piechartWidget.setFontSize(9.0f);
+            mStatusWidgetPage.addWidget(piechartWidget);
+            mPlayerStatusWidgets.put(Player.PlayerID.values()[i], statusWidget);
+        }
+        mPlayerStatusWidgets.get(Player.PlayerID.PLAYER_1).setHighlighted(true);
     }
 
     @Override
@@ -104,6 +132,13 @@ public class ModeGame extends Mode {
 
         mResourceSubpanelHeight = context.getResources().getInteger(R.integer.resource_subpanel_height);
         mResourceSubpanelBorder = context.getResources().getInteger(R.integer.resource_subpanel_border);
+
+        mStatusPanelBitmaps = new TreeMap<Player.PlayerID,Bitmap>();
+        mStatusPanelBitmaps.put(Player.PlayerID.PLAYER_1, BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.player_1_panel)));
+
+        mStatusPanelBitmaps.put(Player.PlayerID.PLAYER_2, BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.player_2_panel)));
+        mStatusPanelBitmaps.put(Player.PlayerID.PLAYER_3, BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.player_3_panel)));
+        mStatusPanelBitmaps.put(Player.PlayerID.PLAYER_4, BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.player_4_panel)));
     }
 
     @Override
@@ -184,31 +219,29 @@ public class ModeGame extends Mode {
         updateResourceStock();
         mResourcePane.draw(canvas, new Vector2i(0, 0));
         mResourceCountWidgets.draw(canvas);
+        mStatusWidgetPage.draw(canvas);
     }
 
     private void updateResourceStock() {
         EnumMap<Resource, Integer> resources = boardState.getCurrentPlayer().getResources();
-        for (Resource resource : resources.keySet()) {
-//            mResourceWidgetMap.get(resource).setText(Integer.toString(resources.get(resource)));
+        for (Resource resource : Resource.values()) {
+            Integer count = resources.get(resource);
+            if (count != null) {
+                mResourceWidgetMap.get(resource).setText(Integer.toString(count));
+            } else {
+                mResourceWidgetMap.get(resource).setText("0");
+            }
         }
     }
 
     private Bitmap createBitmap(Rect sizeAndPosition, Resource resource) {
         Bitmap bitmap = Bitmap.createBitmap(sizeAndPosition.width(), sizeAndPosition.height(), Bitmap.Config.ARGB_8888);
         Canvas canvas =  new Canvas(bitmap);
-       // Paint clearPaint = new Paint();
-       // clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-      //  clearPaint.setARGB(255, 255, 0, 0);
-       // canvas.drawPaint(clearPaint);
-
-        Paint circlePaint = new Paint();
-        //circlePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
         Path path = new Path();
         path.addCircle(sizeAndPosition.width() / 3, sizeAndPosition.height() / 2, 9.0f, Path.Direction.CW);
         canvas.clipPath(path);
         canvas.drawBitmap(mResourceBitmaps.get(resource), 0.f, 0.f, null);
         canvas.clipRect(new Rect(0, 0, canvas.getWidth(), canvas.getHeight()), Region.Op.REPLACE);
-
         return bitmap;
     }
 }
