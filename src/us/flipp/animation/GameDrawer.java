@@ -67,13 +67,13 @@ public class GameDrawer {
         playerPaint.setColor(context.getResources().getInteger(R.integer.player_1_color));
         mPlayerPaints.put(Player.PlayerID.PLAYER_1, playerPaint);
         Paint player2Paint = new Paint(playerPaint);
-        player2Paint.setARGB(255, 130, 220, 180);
+        player2Paint.setColor(context.getResources().getInteger(R.integer.player_2_color));
         mPlayerPaints.put(Player.PlayerID.PLAYER_2, player2Paint);
         Paint player3Paint = new Paint(playerPaint);
-        player3Paint.setARGB(255, 110, 80, 140);
+        player3Paint.setColor(context.getResources().getInteger(R.integer.player_3_color));
         mPlayerPaints.put(Player.PlayerID.PLAYER_3, player3Paint);
         Paint player4Paint = new Paint(playerPaint);
-        player4Paint.setARGB(255, 100, 190, 120);
+        player4Paint.setColor(context.getResources().getInteger(R.integer.player_4_color));
         mPlayerPaints.put(Player.PlayerID.PLAYER_4, player4Paint);
     }
 
@@ -126,10 +126,12 @@ public class GameDrawer {
             LogicalBoard.LogicalPoint logicalPoint = intersection.point;
             HexBoard.GamePoint gamePoint = hexBoard.getGamePoint(logicalPoint);
             canvas.drawCircle((float) gamePoint.visualPoint.x, (float) gamePoint.visualPoint.y, VILLAGE_RADIUS, mPlayerPaints.get(intersection.player.getPlayerID()));
+            Log.d(TAG, "drawing game point at " + gamePoint.logicalPoint.getIndex() + " x is " + gamePoint.visualPoint.x + " y is " + gamePoint.visualPoint.y);
         }
 
         if (suggestedVillage != null) {
             HexBoard.GamePoint p = hexBoard.getGamePoint(suggestedVillage);
+            Log.d(TAG, "suggested drawing suggested at " + p.logicalPoint.getIndex() + " x is " + p.visualPoint.x + " y is " + p.visualPoint.y);
             Paint playerVillagePaint = mPlayerPaints.get(boardState.getCurrentPlayer().getPlayerID());
             playerVillagePaint.setAlpha(alphaValue);
             canvas.drawCircle((float) p.visualPoint.x, (float) p.visualPoint.y, VILLAGE_RADIUS, playerVillagePaint);

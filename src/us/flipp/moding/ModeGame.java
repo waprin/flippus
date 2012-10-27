@@ -5,10 +5,7 @@ import android.graphics.*;
 import android.util.Log;
 import android.util.Pair;
 import us.flipp.R;
-import us.flipp.animation.GameDrawer;
-import us.flipp.animation.Vector2i;
-import us.flipp.animation.Widget;
-import us.flipp.animation.WidgetPage;
+import us.flipp.animation.*;
 import us.flipp.simulation.BoardState;
 import us.flipp.simulation.LogicalBoard;
 import us.flipp.simulation.Player;
@@ -29,6 +26,7 @@ public class ModeGame extends Mode {
     private EnumMap<Resource, Widget> mResourceWidgetMap;
 
     private Widget mResourcePane;
+    private Widget mConfirmWidget;
 
     private EnumMap<Resource, Bitmap> mResourceBitmaps;
     private EnumMap<Player.PlayerID, Widget> mPlayerStatusWidgets;
@@ -54,11 +52,24 @@ public class ModeGame extends Mode {
         gameDrawer.updateSize(width, height, boardState);
 
         Bitmap pane = BitmapFactory.decodeStream(mContext.getResources().openRawResource(R.raw.resource_panel));
-
         Rect resourcePaneRect = new Rect(mScreenWidth - pane.getWidth(), mScreenHeight - pane.getHeight(), mScreenWidth, mScreenHeight);
+        mResourcePane = new Widget(pane, resourcePaneRect);
 
-        mResourcePane = new Widget(BitmapFactory.decodeStream(mContext.getResources().openRawResource(R.raw.resource_panel)),
-                resourcePaneRect);
+        int checkboxTop = mContext.getResources().getInteger(R.integer.check_box_offset_top);
+        int checkboxLeft = mContext.getResources().getInteger(R.integer.check_box_offset_left);
+        Bitmap confirmImage = BitmapFactory.decodeStream(mContext.getResources().openRawResource(R.raw.checkmark));
+        //confirmImage.
+        Rect confirmRect = new Rect(checkboxLeft, checkboxTop, checkboxLeft + confirmImage.getWidth(), checkboxTop + confirmImage.getHeight());
+        mConfirmWidget = new Widget(confirmImage, confirmRect);
+        mConfirmWidget.setVisible(false);
+        mConfirmWidget.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClickListener() {
+                ModeGame.this.confirmButtonPressed();
+            }
+        });
+        Log.d(TAG, "confirm widget is " + mConfirmWidget.getBounds().toString());
+
 
         mResourceCountWidgets = new WidgetPage();
         mResourceWidgetMap = new EnumMap<Resource, Widget>(Resource.class);
@@ -150,36 +161,18 @@ public class ModeGame extends Mode {
     @Override
     public String handleTopButton() {
         Log.d(TAG, "handling button press");
-        switch (boardState.getGameState()) {
-            case BUILD_FIRST_VILLAGE:
-            case BUILD_SECOND_VILLAGE:
-                LogicalBoard.LogicalPoint suggestedVillage = gameDrawer.getSuggestedVillage();
-                if (suggestedVillage != null) {
-                    gameDrawer.setSuggestedVillage(null);
-                    boardState.buildVillage(suggestedVillage);
-                }
 
-                boardState.endTurn();
-                break;
-            case BUILD_FIRST_TRACK:
-            case BUILD_SECOND_TRACK:
-                Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint> suggestedTrack = gameDrawer.getSuggestedTrack();
-                if (suggestedTrack != null) {
-                    boardState.buildTrack(suggestedTrack);
-                }
-                boardState.endTurn();
-                break;
-        }
         return "";
     }
 
     @Override
     public void handleTap(int x, int y) {
+        Log.d(TAG, "handleTap: x " + x + " y " + y);
         gameDrawer.handleTap(x, y);
         if (gameDrawer.boardContains(x, y)) {
             handleBoardTap(x, y);
         }
-
+        mConfirmWidget.handleTap(x, y);
     }
 
     private void handleBoardTap(int x, int y) {
@@ -189,7 +182,10 @@ public class ModeGame extends Mode {
             case BUILD_SECOND_VILLAGE:
             {
                 LogicalBoard.LogicalPoint closestPoint = gameDrawer.getClosestPoint(x, y);
-                gameDrawer.setSuggestedVillage(closestPoint);
+                if (boardState.isVillageLegal(closestPoint)) {
+                    gameDrawer.setSuggestedVillage(closestPoint);
+                    mConfirmWidget.setVisible(true);
+                }
                 break;
             }
             case BUILD_FIRST_TRACK:
@@ -202,8 +198,34 @@ public class ModeGame extends Mode {
                     Log.e(TAG, "handleTap(): somehow a point was detected as connected to itself");
                 }
                 gameDrawer.setSuggestedTrack(boardState.getCurrentPlayer(), new Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>(closestPoint, connectedPoint));
+                mConfirmWidget.setVisible(true);
                 break;
             }
+        }
+    }
+
+    private void confirmButtonPressed() {
+        Log.d(TAG, "Confirm button pressed!");
+        switch (boardState.getGameState()) {
+            case BUILD_FIRST_VILLAGE:
+            case BUILD_SECOND_VILLAGE:
+                LogicalBoard.LogicalPoint suggestedVillage = gameDrawer.getSuggestedVillage();
+                if (suggestedVillage != null) {
+                    gameDrawer.setSuggestedVillage(null);
+                    boardState.buildVillage(suggestedVillage);
+                    mConfirmWidget.setVisible(false);
+                }
+                boardState.endTurn();
+                break;
+            case BUILD_FIRST_TRACK:
+            case BUILD_SECOND_TRACK:
+                Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint> suggestedTrack = gameDrawer.getSuggestedTrack();
+                if (suggestedTrack != null) {
+                    boardState.buildTrack(suggestedTrack);
+                }
+                boardState.endTurn();
+                mConfirmWidget.setVisible(false);
+                break;
         }
     }
 
@@ -218,6 +240,7 @@ public class ModeGame extends Mode {
         gameDrawer.draw(canvas, boardState);
         updateResourceStock();
         mResourcePane.draw(canvas, new Vector2i(0, 0));
+        mConfirmWidget.draw(canvas, new Vector2i(0, 0));
         mResourceCountWidgets.draw(canvas);
         mStatusWidgetPage.draw(canvas);
     }

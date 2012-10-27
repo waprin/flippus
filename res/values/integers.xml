@@ -15,7 +15,17 @@
     <integer name="pie_chart_offset_left">5</integer>
     <integer name="pie_chart_offset_top">2</integer>
 
-    <integer name="player_1_color">5626319</integer>   <!--0x55d9cf teal -->
+    <integer name="check_box_offset_left">170</integer>
+    <integer name="check_box_offset_top">400</integer>
+
+    <integer name="check_box_width">50</integer>
+    <integer name="check_box_height">50</integer>
+
+
+    <integer name="player_1_color">5626319</integer>   <!-- 0x55d9cf teal -->
+    <integer name="player_2_color">14822453</integer>  <!-- 0xe22c35 red -->
+    <integer name="player_3_color">2941508</integer>          <!-- 0x2ce244 green -->
+    <integer name="player_4_color">14862380</integer>          <!-- 0xe2c82c  yellow -->
 
 </resources>
 

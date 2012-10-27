@@ -150,6 +150,10 @@ public class LogicalBoard {
             }
             return resources;
         }
+
+        public boolean equals(LogicalPoint logicalPoint) {
+            return mIndex == logicalPoint.mIndex;
+        }
     }
 
 

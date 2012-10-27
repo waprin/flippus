@@ -1,5 +1,6 @@
 package us.flipp.simulation;
 
+import android.util.Log;
 import android.util.Pair;
 import us.flipp.utility.CircularLinkedList;
 
@@ -51,7 +52,6 @@ public class BoardState {
     private List<Intersection> intersections;
     private List<Track> tracks;
 
-
     public BoardState() {
        logicalBoard = new LogicalBoard();
        this.players = new CircularLinkedList<Player>();
@@ -69,7 +69,6 @@ public class BoardState {
         this.tracks = new ArrayList<Track>();
     }
 
-
     public LogicalBoard getLogicalBoard() {
         return logicalBoard;
     }
@@ -78,29 +77,43 @@ public class BoardState {
         return currentPlayer;
     }
 
-    public List<Player> getAllPlayers() {
-        return players.getList();
-    }
-
     public GameState getGameState() {
         return this.gameState;
-    }
-
-
-    public boolean isFirstPlayerCurrent() {
-        return firstPlayer == currentPlayer;
-    }
-
-
-    public List<Track> getTracks() {
-        return tracks;
     }
 
     public List<Intersection> getIntersections() {
         return intersections;
     }
 
+    public boolean villageAtPoint(LogicalBoard.LogicalPoint logicalPoint) {
+        for (Intersection intersection : intersections) {
+            if (intersection.point.equals(logicalPoint))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isVillageLegal(LogicalBoard.LogicalPoint logicalPoint) {
+        Log.d(TAG, "isVillageLegal(): logical point " + logicalPoint.getIndex());
+        if (villageAtPoint(logicalPoint)) {
+            Log.d(TAG, "isVillageLegal(): village already exists");
+        }
+        for (LogicalBoard.LogicalPoint connected : logicalPoint.getConnected()) {
+            Log.d(TAG, "isVillageLegal(): comparing index " + connected.getIndex());
+            if (villageAtPoint(connected)) {
+                Log.d(TAG, "isVillageLegal(): false index " + connected.getIndex());
+                return false;
+            }
+        }
+        Log.d(TAG, "isVillageLegal(): true");
+        return true;
+    }
+
    public void buildVillage(LogicalBoard.LogicalPoint logicalPoint) {
+       Log.d(TAG, "buildVillage(): index " + logicalPoint.getIndex());
+       if (!isVillageLegal(logicalPoint)) {
+           throw new RuntimeException("Trying to build village at illegal point " + logicalPoint.getIndex());
+       }
        intersections.add(new Intersection(logicalPoint, currentPlayer));
        if (gameState == GameState.BUILD_SECOND_TRACK) {
            currentPlayer.increaseResourceCount(logicalPoint.getStartingResources());
@@ -112,13 +125,18 @@ public class BoardState {
    }
 
    public void endTurn() {
-       currentPlayer = players.getNext();
-       if (this.isFirstPlayerCurrent()) {
-            if (gameState == BoardState.GameState.BUILD_FIRST_VILLAGE) {
-                gameState = GameState.BUILD_FIRST_TRACK;
-            } else if (gameState == GameState.BUILD_FIRST_TRACK) {
-                gameState = GameState.BUILD_SECOND_TRACK;
-            }
+       Log.d(TAG, "endTurn(): begin: current player is "  + currentPlayer.getPlayerID() + " mode is " + gameState.toString());
+       if (gameState == BoardState.GameState.BUILD_FIRST_VILLAGE) {
+           gameState = GameState.BUILD_FIRST_TRACK;
+       } else if (gameState == GameState.BUILD_SECOND_VILLAGE) {
+           gameState = GameState.BUILD_SECOND_TRACK;
+       } else if (gameState == GameState.BUILD_FIRST_TRACK) {
+           currentPlayer = players.getNext();
+           gameState = currentPlayer.equals(firstPlayer) ? GameState.BUILD_SECOND_VILLAGE : GameState.BUILD_FIRST_VILLAGE;
+       }  else if (gameState == GameState.BUILD_SECOND_TRACK) {
+           currentPlayer = players.getNext();
+           gameState = currentPlayer.equals(firstPlayer) ? GameState.NORMAL : GameState.BUILD_SECOND_VILLAGE;
        }
+       Log.d(TAG, "endTurn(): end: current player is "  + currentPlayer.getPlayerID() + " mode is " + gameState.toString());
    }
 }

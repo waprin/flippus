@@ -18,11 +18,23 @@ public class Widget {
     private float mBorderSize = 0.0f;
     private boolean mHighlighted = false;
 
+    private boolean mVisible;
+    private OnClickListener mOnClickListener;
+
     public Widget(Bitmap bitmap, Rect size) {
         mBounds = size;
         mBackbuffer = Bitmap.createBitmap(mBounds.width(), mBounds.height(), Bitmap.Config.ARGB_8888);
         mFrontbuffer = Bitmap.createBitmap(mBounds.width(),  mBounds.height(), Bitmap.Config.ARGB_8888);
         drawBitmap(mBackbuffer, bitmap);
+        mVisible = true;
+    }
+
+    public void setVisible(boolean visible) {
+        mVisible = visible;
+    }
+
+    public void setOnClickListener(OnClickListener onClickListener) {
+        mOnClickListener = onClickListener;
     }
 
     public Widget(Bitmap backbuffer, Point position) {
@@ -43,10 +55,12 @@ public class Widget {
     }
 
     public void draw(Canvas canvas, Vector2i offset) {
-        if (mInvalidated) {
-            redraw();
+        if (mVisible) {
+            if (mInvalidated) {
+                redraw();
+            }
+            canvas.drawBitmap(mFrontbuffer, mBounds.left + offset.x, mBounds.top + offset.y, null);
         }
-        canvas.drawBitmap(mFrontbuffer, mBounds.left + offset.x, mBounds.top + offset.y, null);
     }
 
     private void redraw() {
@@ -87,7 +101,10 @@ public class Widget {
     }
 
     public void handleTap(int x, int y) {
-
+        Log.d(TAG, "handleTap ");
+        if (mBounds.contains(x, y)) {
+            mOnClickListener.onClickListener();
+        }
     }
 
 

@@ -16,29 +16,6 @@ public class HexBoard {
 
     private Hexagon[] hexagons;
     private Rect rect;
-    private Rect innerRect;
-
-    public boolean contains(int x, int y) {
-        return rect.contains(x, y);
-    }
-
-    public List<GamePoint> getGamePoints(List<LogicalBoard.LogicalPoint> logicalPoints) {
-        List<GamePoint> gamePoints = new LinkedList<GamePoint>();
-        for (LogicalBoard.LogicalPoint p : logicalPoints) {
-            gamePoints.add(getGamePoint(p));
-        }
-        return gamePoints;
-    }
-
-    public GamePoint getGamePoint(LogicalBoard.LogicalPoint logicalPoint) {
-        for (GamePoint gamePoint : allPoints) {
-            if (gamePoint.logicalPoint.equals(logicalPoint)) {
-                return gamePoint;
-            }
-        }
-        Log.e(TAG, "did not find logical point ");
-        return null;
-    }
 
     public static class GamePoint {
         public Point visualPoint;
@@ -63,12 +40,34 @@ public class HexBoard {
         }
     }
 
-    public Rect getRect() {
-        return this.rect;
+
+
+    public boolean contains(int x, int y) {
+        return rect.contains(x, y);
     }
 
-    public Rect getInnerRect() {
-        return innerRect;
+
+    public List<GamePoint> getGamePoints(List<LogicalBoard.LogicalPoint> logicalPoints) {
+        List<GamePoint> gamePoints = new LinkedList<GamePoint>();
+        for (LogicalBoard.LogicalPoint p : logicalPoints) {
+            gamePoints.add(getGamePoint(p));
+        }
+        return gamePoints;
+    }
+
+    public GamePoint getGamePoint(LogicalBoard.LogicalPoint logicalPoint) {
+        for (GamePoint gamePoint : allPoints) {
+            if (gamePoint.logicalPoint.equals(logicalPoint)) {
+                return gamePoint;
+            }
+        }
+        Log.e(TAG, "did not find logical point ");
+        return null;
+    }
+
+
+    public Rect getRect() {
+        return this.rect;
     }
 
     private LogicalBoard.LogicalPoint getClosesPoint(int x, int y, Collection<GamePoint> gamePoints) {
@@ -133,8 +132,8 @@ public class HexBoard {
 
         int index = 0;
 
-        innerRect = new Rect(boardLeft, boardTop,
-                             boardLeft + boardWidth, boardTop + boardHeight);
+        //innerRect = new Rect(boardLeft, boardTop,
+         //                    boardLeft + boardWidth, boardTop + boardHeight);
 
         int maxCount = 0;
         for (int i = 0; i < BoardState.rowCounts.length; i++) {
