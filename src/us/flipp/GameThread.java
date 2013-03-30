@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import us.flipp.moding.GameStateMachine;
+import us.flipp.utility.Constants;
 
 import java.util.concurrent.Semaphore;
 import java.util.logging.Handler;
@@ -36,7 +37,7 @@ public class GameThread extends Thread {
             long update_start = System.nanoTime();
             try {
                 this.semaphore.acquire();
-                this.game.tick(20);
+                this.game.tick(Constants.TICK_PERIOD);
                 Canvas canvas = null;
                 try {
                     canvas = surfaceHolder.lockCanvas();
@@ -56,8 +57,8 @@ public class GameThread extends Thread {
             }
 
             long runningTime = System.nanoTime() - update_start;
-
-            int sleepTime = (int)((20000000L - runningTime) / 1000000L);
+            long numeratorTime = Constants.TICK_PERIOD * 1000000L;
+            int sleepTime = (int)((numeratorTime - runningTime) / 1000000L);
            if(sleepTime > 0)
            {
                    try {

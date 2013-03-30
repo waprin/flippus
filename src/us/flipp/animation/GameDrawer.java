@@ -38,7 +38,6 @@ public class GameDrawer {
 
     private int alphaValue;
 
-    private WidgetPage resourcePage;
     private EnumMap<Resource, Bitmap> mResourceBitmaps;
 
     public GameDrawer(Context context, EnumMap<Resource, Bitmap> resourceBitmaps) {
@@ -91,7 +90,6 @@ public class GameDrawer {
         Rect hexRect = new Rect(0, (int)(height*.1), width, (int)(height * .7));
         hexBoard.updateSize(hexRect, boardState);
 
-        resourcePage = new WidgetPage();
         widgets = new LinkedList<Widget>();
 
         gameHeight = height;
@@ -126,12 +124,12 @@ public class GameDrawer {
             LogicalBoard.LogicalPoint logicalPoint = intersection.point;
             HexBoard.GamePoint gamePoint = hexBoard.getGamePoint(logicalPoint);
             canvas.drawCircle((float) gamePoint.visualPoint.x, (float) gamePoint.visualPoint.y, VILLAGE_RADIUS, mPlayerPaints.get(intersection.player.getPlayerID()));
-            Log.d(TAG, "drawing game point at " + gamePoint.logicalPoint.getIndex() + " x is " + gamePoint.visualPoint.x + " y is " + gamePoint.visualPoint.y);
+//            Log.d(TAG, "drawing game point at " + gamePoint.logicalPoint.getIndex() + " x is " + gamePoint.visualPoint.x + " y is " + gamePoint.visualPoint.y);
         }
 
         if (suggestedVillage != null) {
             HexBoard.GamePoint p = hexBoard.getGamePoint(suggestedVillage);
-            Log.d(TAG, "suggested drawing suggested at " + p.logicalPoint.getIndex() + " x is " + p.visualPoint.x + " y is " + p.visualPoint.y);
+            //Log.d(TAG, "suggested drawing suggested at " + p.logicalPoint.getIndex() + " x is " + p.visualPoint.x + " y is " + p.visualPoint.y);
             Paint playerVillagePaint = mPlayerPaints.get(boardState.getCurrentPlayer().getPlayerID());
             playerVillagePaint.setAlpha(alphaValue);
             canvas.drawCircle((float) p.visualPoint.x, (float) p.visualPoint.y, VILLAGE_RADIUS, playerVillagePaint);
@@ -143,12 +141,6 @@ public class GameDrawer {
             HexBoard.GamePoint second = hexBoard.getGamePoint(suggestedTrack.second);
             canvas.drawLine(first.visualPoint.x, first.visualPoint.y, second.visualPoint.x, second.visualPoint.y, trackPaint);
         }
-    }
-
-    public void drawWidgets(Canvas canvas, BoardState boardState) {
-    /*    for (Widget widget : widgets) {
-            widget.draw(canvas, boardState);
-      */
     }
 
     private void drawHexagon(Canvas canvas, Hexagon hexagon, LogicalBoard.LogicalHex logicalHex) {
@@ -199,9 +191,6 @@ public class GameDrawer {
                 down = true;
             }
         }
-        for (Widget widget : widgets) {
-            widget.tick(timespan);
-        }
     }
 
     public LogicalBoard.LogicalPoint getClosestPoint(int x, int y) {
@@ -230,16 +219,10 @@ public class GameDrawer {
 
     public void handleTap(int x, int y) {
         Log.d(TAG, "handleTap(): begin ... x " + x + " y " + y);
-        for (Widget widget : widgets) {
-         /*   if (widget.contains(x, y)) {
-                widget.handleTap(x, y);
-            } */
-        }
     }
 
     public void draw(Canvas canvas, BoardState boardState) {
         drawBoard(canvas, boardState);
-        drawWidgets(canvas, boardState);
     }
 }
 

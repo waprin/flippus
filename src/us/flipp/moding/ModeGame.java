@@ -6,16 +6,12 @@ import android.util.Log;
 import android.util.Pair;
 import us.flipp.R;
 import us.flipp.animation.*;
-import us.flipp.simulation.BoardState;
-import us.flipp.simulation.LogicalBoard;
-import us.flipp.simulation.Player;
-import us.flipp.simulation.Resource;
+import us.flipp.simulation.*;
 
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
 
-public class ModeGame extends Mode {
+public class ModeGame extends Mode implements ResourceChangeEvent {
 
     static private String TAG = ModeGame.class.getName();
 
@@ -28,6 +24,10 @@ public class ModeGame extends Mode {
     private Widget mResourcePane;
     private Widget mConfirmWidget;
 
+    private WidgetPage mDebugOverlay;
+    private Widget mModeWidget;
+    private Widget mPercentWidget;
+
     private EnumMap<Resource, Bitmap> mResourceBitmaps;
     private EnumMap<Player.PlayerID, Widget> mPlayerStatusWidgets;
 
@@ -37,9 +37,29 @@ public class ModeGame extends Mode {
     private int mResourceSubpanelBorder;
     private WidgetPage mStatusWidgetPage;
 
+    private Queue<Animation> animations;
+    private boolean animating;
+    private boolean mDebug = true;
+
     @Override
     public ModeAction tick(int timespan) {
         gameDrawer.tick(timespan);
+        if (!animations.isEmpty()) {
+            animating = true;
+            Animation top = animations.peek();
+            if (top.finished()) {
+                animations.remove();
+            }
+            if (!animations.isEmpty()) {
+                top = animations.peek();
+                top.tick();
+                mPercentWidget.setText(Integer.toString(top.getTickCount()) + " / " + Integer.toString(top.getMaxTicks()));
+            }
+            mPercentWidget.setVisible(true);
+        } else {
+            animating = false;
+            mPercentWidget.setVisible(false);
+        }
         return ModeAction.NoAction;
     }
 
@@ -117,7 +137,34 @@ public class ModeGame extends Mode {
             mStatusWidgetPage.addWidget(piechartWidget);
             mPlayerStatusWidgets.put(Player.PlayerID.values()[i], statusWidget);
         }
-        mPlayerStatusWidgets.get(Player.PlayerID.PLAYER_1).setHighlighted(true);
+
+        updateHighlightedPlayer();
+
+        mModeWidget = new Widget(new Rect(0, 0, mScreenWidth, mScreenHeight / 5));
+        Paint whiteTextPaint = new Paint();
+        whiteTextPaint.setARGB(255, 255, 255, 255);
+        mModeWidget.setTextPaint(whiteTextPaint);
+        mModeWidget.setAlign(Widget.Align.Center);
+        mModeWidget.setText(boardState.getGameState().toString());
+
+
+        mPercentWidget = new Widget(new Rect(0, 0, mScreenWidth / 2, mScreenHeight / 5));
+        mPercentWidget.setTextPaint(whiteTextPaint);
+        mPercentWidget.setAlign(Widget.Align.Center);
+
+        mDebugOverlay = new WidgetPage();
+        mDebugOverlay.addWidget(mModeWidget);
+        mDebugOverlay.addWidget(mPercentWidget);
+
+        animations = new LinkedBlockingDeque<Animation>();
+        boardState.addResourceChangeEvent(this);
+    }
+
+    public void updateHighlightedPlayer() {
+        for (Player.PlayerID id : Player.PlayerID.values()) {
+            mPlayerStatusWidgets.get(id).setHighlighted(false);
+        }
+        mPlayerStatusWidgets.get(boardState.getCurrentPlayer().getPlayerID()).setHighlighted(true);
     }
 
     @Override
@@ -150,6 +197,8 @@ public class ModeGame extends Mode {
         mStatusPanelBitmaps.put(Player.PlayerID.PLAYER_2, BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.player_2_panel)));
         mStatusPanelBitmaps.put(Player.PlayerID.PLAYER_3, BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.player_3_panel)));
         mStatusPanelBitmaps.put(Player.PlayerID.PLAYER_4, BitmapFactory.decodeStream(context.getResources().openRawResource(R.raw.player_4_panel)));
+
+        animating = false;
     }
 
     @Override
@@ -177,6 +226,10 @@ public class ModeGame extends Mode {
 
     private void handleBoardTap(int x, int y) {
         Log.d(TAG, "handle tap");
+        if (animating) {
+            return;
+        }
+
         switch (boardState.getGameState()) {
             case BUILD_FIRST_VILLAGE:
             case BUILD_SECOND_VILLAGE:
@@ -204,6 +257,13 @@ public class ModeGame extends Mode {
         }
     }
 
+    private void endTurn() {
+        boardState.endTurn();
+        mModeWidget.setText(boardState.getGameState().toString());
+        updateResourceStock();
+        updateHighlightedPlayer();
+    }
+
     private void confirmButtonPressed() {
         Log.d(TAG, "Confirm button pressed!");
         switch (boardState.getGameState()) {
@@ -215,7 +275,7 @@ public class ModeGame extends Mode {
                     boardState.buildVillage(suggestedVillage);
                     mConfirmWidget.setVisible(false);
                 }
-                boardState.endTurn();
+                endTurn();
                 break;
             case BUILD_FIRST_TRACK:
             case BUILD_SECOND_TRACK:
@@ -223,7 +283,7 @@ public class ModeGame extends Mode {
                 if (suggestedTrack != null) {
                     boardState.buildTrack(suggestedTrack);
                 }
-                boardState.endTurn();
+                endTurn();
                 mConfirmWidget.setVisible(false);
                 break;
         }
@@ -238,12 +298,28 @@ public class ModeGame extends Mode {
     public void redraw(Canvas canvas) {
         super.redraw(canvas);
         gameDrawer.draw(canvas, boardState);
-        updateResourceStock();
         mResourcePane.draw(canvas, new Vector2i(0, 0));
         mConfirmWidget.draw(canvas, new Vector2i(0, 0));
         mResourceCountWidgets.draw(canvas);
         mStatusWidgetPage.draw(canvas);
+
+        if (mDebug) {
+            mDebugOverlay.draw(canvas);
+        }
+
+        for (Animation animation : animations) {
+            animation.draw(canvas);
+        }
     }
+
+
+    public void notifyOfResourceChange(Resource resource, int amount) {
+        int left = mResourceWidgetMap.get(resource).getBounds().left;
+        int top = mResourceWidgetMap.get(resource).getBounds().top;
+        Animation resourceIncreaseAnimation = new ResourceIncreaseAnimation(new Vector2i(left, top), 1);
+        animations.add(resourceIncreaseAnimation);
+    }
+
 
     private void updateResourceStock() {
         EnumMap<Resource, Integer> resources = boardState.getCurrentPlayer().getResources();

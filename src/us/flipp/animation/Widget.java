@@ -21,11 +21,51 @@ public class Widget {
     private boolean mVisible;
     private OnClickListener mOnClickListener;
 
+    private Paint mTextPaint;
+    private Align mAlign;
+
+    public enum Align {
+        Center,
+        Right
+    }
+
     public Widget(Bitmap bitmap, Rect size) {
         mBounds = size;
         mBackbuffer = Bitmap.createBitmap(mBounds.width(), mBounds.height(), Bitmap.Config.ARGB_8888);
         mFrontbuffer = Bitmap.createBitmap(mBounds.width(),  mBounds.height(), Bitmap.Config.ARGB_8888);
-        drawBitmap(mBackbuffer, bitmap);
+
+        Canvas canvas = new Canvas(mBackbuffer);
+        canvas.drawARGB(0, 0, 0, 0);
+        canvas.drawBitmap(bitmap, 0, 0, null);
+        mVisible = true;
+
+        initializeAssets();
+    }
+
+    public void initializeAssets() {
+        mTextPaint = new Paint();
+        mTextPaint.setARGB(255, 0, 0, 0);
+        mTextPaint.setTextSize(mFontSize);
+        mTextPaint.setTextAlign(Paint.Align.CENTER);
+
+        mAlign = Align.Right;
+    }
+
+    public void setTextPaint(Paint paint) {
+        mTextPaint = paint;
+        mInvalidated = true;
+    }
+
+    public void setAlign(Align align) {
+        mAlign = align;
+        mInvalidated = true;
+    }
+
+    public Widget(Rect size) {
+        mBounds = size;
+        Log.d(TAG, "creating bitmap of size " + mBounds.width() + " and ehight " + mBounds.height());
+        mBackbuffer = Bitmap.createBitmap(mBounds.width(), mBounds.height(), Bitmap.Config.ARGB_8888);
+        mFrontbuffer = Bitmap.createBitmap(mBounds.width(),  mBounds.height(), Bitmap.Config.ARGB_8888);
         mVisible = true;
     }
 
@@ -37,27 +77,11 @@ public class Widget {
         mOnClickListener = onClickListener;
     }
 
-    public Widget(Bitmap backbuffer, Point position) {
-        Log.d(TAG, "Widget(): creating widget at point " + position.toString() + " of dimensions " + backbuffer.getWidth() + " , " + backbuffer.getHeight());
-        mBackbuffer = backbuffer;
-        mBounds = new Rect(position.x, position.y, position.x + backbuffer.getWidth(), position.y + backbuffer.getHeight());
-        mBackbuffer = Bitmap.createBitmap(mBounds.width(), mBounds.height(), Bitmap.Config.ARGB_8888);
-        mFrontbuffer = Bitmap.createBitmap(mBounds.width(), mBounds.height(), Bitmap.Config.ARGB_8888);
-
-        Canvas c = new Canvas(mBackbuffer);
-        c.drawBitmap(backbuffer, 0, 0, null);
-    }
-
-    protected void drawBitmap(Bitmap dest, Bitmap src) {
-        Canvas canvas = new Canvas(mBackbuffer);
-        canvas.drawARGB(0, 0, 0, 0);
-        canvas.drawBitmap(src, 0, 0, null);
-    }
-
     public void draw(Canvas canvas, Vector2i offset) {
         if (mVisible) {
             if (mInvalidated) {
                 redraw();
+                mInvalidated = false;
             }
             canvas.drawBitmap(mFrontbuffer, mBounds.left + offset.x, mBounds.top + offset.y, null);
         }
@@ -65,24 +89,20 @@ public class Widget {
 
     private void redraw() {
         Canvas canvas = new Canvas(mFrontbuffer);
-/*        Paint clearPaint = new Paint();
-        clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
-        clearPaint.setARGB(0,0,0,0);
-        canvas.drawPaint(clearPaint);
-*/
+        canvas.drawColor(Color.argb(0, 0, 0, 0), PorterDuff.Mode.SRC);
         canvas.drawBitmap(mBackbuffer, 0, 0, null);
 
-        Paint textPaint = new Paint();
-        textPaint.setARGB(255, 0, 0, 0);
-        textPaint.setTextSize(mFontSize);
-       // textPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
-        textPaint.setTextAlign(Paint.Align.CENTER);
+        int lineHeight = (int)(mTextPaint.descent() - mTextPaint.ascent());
 
-        int lineHeight = (int)(textPaint.descent() - textPaint.ascent());
-        int verticalPosition = mBounds.height() / 2 + (int)textPaint.descent();
+        int verticalPosition = mBounds.height() / 2 + (int)mTextPaint.descent();
+        int horizontalOffset = 3 * mBounds.width() / 4;
 
-
-        canvas.drawText(mText, 3 * mBounds.width() / 4, verticalPosition, textPaint);
+        if (mAlign == Align.Right) {
+        } else if (mAlign == Align.Center) {
+            horizontalOffset = mBounds.width() / 2;
+        }
+        Log.d(TAG, "drawing text " + mText);
+        canvas.drawText(mText, horizontalOffset, verticalPosition, mTextPaint);
 
         if (mBorderSize > 0) {
             Paint borderPaint = new Paint();
@@ -94,10 +114,10 @@ public class Widget {
                 borderPaint.setARGB(255, 0, 0, 0);
             }
             Rect borderRect = new Rect(0, 0, mFrontbuffer.getWidth(), mFrontbuffer.getHeight());
-//            borderRect.bottom -= 5;
-//            borderRect.right -= 5;
             canvas.drawRect(borderRect, borderPaint);
         }
+       // canvas.drawARGB(0, 0, 0, 0);
+
     }
 
     public void handleTap(int x, int y) {
@@ -122,6 +142,7 @@ public class Widget {
 
     public void setHighlighted(boolean highlighted) {
         mHighlighted = highlighted;
+        mInvalidated = true;
     }
 
     public boolean getHighlighted() {
@@ -135,6 +156,7 @@ public class Widget {
 
     public void setFontSize(float fontSize) {
         mFontSize = fontSize;
+        mInvalidated = true;
     }
 
     public Rect getBounds() {
@@ -143,5 +165,6 @@ public class Widget {
 
     public void setFontSize(int fontSize) {
         mFontSize = fontSize;
+        mInvalidated = true;
     }
 }

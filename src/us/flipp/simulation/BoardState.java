@@ -52,6 +52,8 @@ public class BoardState {
     private List<Intersection> intersections;
     private List<Track> tracks;
 
+    private List<ResourceChangeEvent> mResourceChangeEvents;
+
     public BoardState() {
        logicalBoard = new LogicalBoard();
        this.players = new CircularLinkedList<Player>();
@@ -67,6 +69,18 @@ public class BoardState {
 
         this.gameState = GameState.BUILD_FIRST_VILLAGE;
         this.tracks = new ArrayList<Track>();
+
+        mResourceChangeEvents = new ArrayList<ResourceChangeEvent>();
+    }
+
+    public void addResourceChangeEvent(ResourceChangeEvent resourceChangeEvent) {
+        mResourceChangeEvents.add(resourceChangeEvent);
+    }
+
+    private void notifyOfResourceChange(Resource resource, int amount) {
+        for (ResourceChangeEvent rce : mResourceChangeEvents) {
+            rce.notifyOfResourceChange(resource, amount);
+        }
     }
 
     public LogicalBoard getLogicalBoard() {
@@ -115,8 +129,13 @@ public class BoardState {
            throw new RuntimeException("Trying to build village at illegal point " + logicalPoint.getIndex());
        }
        intersections.add(new Intersection(logicalPoint, currentPlayer));
-       if (gameState == GameState.BUILD_SECOND_TRACK) {
+       if (gameState == GameState.BUILD_SECOND_VILLAGE) {
            currentPlayer.increaseResourceCount(logicalPoint.getStartingResources());
+           for (Resource resource : logicalPoint.getStartingResources().keySet()) {
+               Log.d(TAG, "buildVillage(): notifying of increase of for resource " + resource.toString());
+               notifyOfResourceChange(resource, 1);
+           }
+
        }
    }
 
