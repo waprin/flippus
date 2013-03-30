@@ -5,11 +5,13 @@ import android.util.Pair;
 import us.flipp.utility.CircularLinkedList;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 
 public class BoardState {
 
     private static final String TAG = BoardState.class.getName();
+
 
     public enum GameState {
         BUILD_FIRST_VILLAGE,
@@ -40,19 +42,21 @@ public class BoardState {
         }
     }
 
-    private GameState gameState;
+    private GameState mGameState;
     public static int[] rowCounts = {3, 4, 5, 4 ,3};
     public static final int ROW_MAX = 5;
     public static final int TOTAL_HEXES = 19;
     private LogicalBoard logicalBoard;
 
     private CircularLinkedList<Player> players;
-    private Player currentPlayer;
+    private Player mCurrentPlayer;
     private Player firstPlayer;
-    private List<Intersection> intersections;
+    private List<Intersection> mIntersections;
     private List<Track> tracks;
 
     private List<ResourceChangeEvent> mResourceChangeEvents;
+
+    private LogicalBoard.LogicalPoint mLastVillage;
 
     public BoardState() {
        logicalBoard = new LogicalBoard();
@@ -62,12 +66,12 @@ public class BoardState {
             Player player = new Player(id);
             players.add(player);
         }
-        currentPlayer = players.getNext();
-        firstPlayer = currentPlayer;
+        mCurrentPlayer = players.getNext();
+        firstPlayer = mCurrentPlayer;
 
-       intersections = new ArrayList<Intersection>();
+       mIntersections = new ArrayList<Intersection>();
 
-        this.gameState = GameState.BUILD_FIRST_VILLAGE;
+        this.mGameState = GameState.BUILD_FIRST_VILLAGE;
         this.tracks = new ArrayList<Track>();
 
         mResourceChangeEvents = new ArrayList<ResourceChangeEvent>();
@@ -88,19 +92,24 @@ public class BoardState {
     }
 
     public Player getCurrentPlayer() {
-        return currentPlayer;
+        return mCurrentPlayer;
     }
 
     public GameState getGameState() {
-        return this.gameState;
+        return this.mGameState;
     }
 
     public List<Intersection> getIntersections() {
-        return intersections;
+        return mIntersections;
     }
 
+    public List<Track> getTracks() {
+        return tracks;
+    }
+
+
     public boolean villageAtPoint(LogicalBoard.LogicalPoint logicalPoint) {
-        for (Intersection intersection : intersections) {
+        for (Intersection intersection : mIntersections) {
             if (intersection.point.equals(logicalPoint))
                 return true;
         }
@@ -111,6 +120,7 @@ public class BoardState {
         Log.d(TAG, "isVillageLegal(): logical point " + logicalPoint.getIndex());
         if (villageAtPoint(logicalPoint)) {
             Log.d(TAG, "isVillageLegal(): village already exists");
+            return false;
         }
         for (LogicalBoard.LogicalPoint connected : logicalPoint.getConnected()) {
             Log.d(TAG, "isVillageLegal(): comparing index " + connected.getIndex());
@@ -128,9 +138,10 @@ public class BoardState {
        if (!isVillageLegal(logicalPoint)) {
            throw new RuntimeException("Trying to build village at illegal point " + logicalPoint.getIndex());
        }
-       intersections.add(new Intersection(logicalPoint, currentPlayer));
-       if (gameState == GameState.BUILD_SECOND_VILLAGE) {
-           currentPlayer.increaseResourceCount(logicalPoint.getStartingResources());
+       mIntersections.add(new Intersection(logicalPoint, mCurrentPlayer));
+       mLastVillage = logicalPoint;
+       if (mGameState == GameState.BUILD_SECOND_VILLAGE) {
+           mCurrentPlayer.increaseResourceCount(logicalPoint.getStartingResources());
            for (Resource resource : logicalPoint.getStartingResources().keySet()) {
                Log.d(TAG, "buildVillage(): notifying of increase of for resource " + resource.toString());
                notifyOfResourceChange(resource, 1);
@@ -139,23 +150,28 @@ public class BoardState {
        }
    }
 
-   public void buildTrack(Pair<LogicalBoard.LogicalPoint , LogicalBoard.LogicalPoint> suggestedTrack) {
-        tracks.add(new Track(suggestedTrack.first, suggestedTrack.second, currentPlayer));
+    public boolean isLegalTrack(LogicalBoard.LogicalPoint closestPoint, LogicalBoard.LogicalPoint connectedPoint) {
+        return closestPoint.equals(mLastVillage) || connectedPoint.equals(mLastVillage);
+    }
+
+
+    public void buildTrack(Pair<LogicalBoard.LogicalPoint , LogicalBoard.LogicalPoint> suggestedTrack) {
+        tracks.add(new Track(suggestedTrack.first, suggestedTrack.second, mCurrentPlayer));
    }
 
    public void endTurn() {
-       Log.d(TAG, "endTurn(): begin: current player is "  + currentPlayer.getPlayerID() + " mode is " + gameState.toString());
-       if (gameState == BoardState.GameState.BUILD_FIRST_VILLAGE) {
-           gameState = GameState.BUILD_FIRST_TRACK;
-       } else if (gameState == GameState.BUILD_SECOND_VILLAGE) {
-           gameState = GameState.BUILD_SECOND_TRACK;
-       } else if (gameState == GameState.BUILD_FIRST_TRACK) {
-           currentPlayer = players.getNext();
-           gameState = currentPlayer.equals(firstPlayer) ? GameState.BUILD_SECOND_VILLAGE : GameState.BUILD_FIRST_VILLAGE;
-       }  else if (gameState == GameState.BUILD_SECOND_TRACK) {
-           currentPlayer = players.getNext();
-           gameState = currentPlayer.equals(firstPlayer) ? GameState.NORMAL : GameState.BUILD_SECOND_VILLAGE;
+       Log.d(TAG, "endTurn(): begin: current player is "  + mCurrentPlayer.getPlayerID() + " mode is " + mGameState.toString());
+       if (mGameState == BoardState.GameState.BUILD_FIRST_VILLAGE) {
+           mGameState = GameState.BUILD_FIRST_TRACK;
+       } else if (mGameState == GameState.BUILD_SECOND_VILLAGE) {
+           mGameState = GameState.BUILD_SECOND_TRACK;
+       } else if (mGameState == GameState.BUILD_FIRST_TRACK) {
+           mCurrentPlayer = players.getNext();
+           mGameState = mCurrentPlayer.equals(firstPlayer) ? GameState.BUILD_SECOND_VILLAGE : GameState.BUILD_FIRST_VILLAGE;
+       }  else if (mGameState == GameState.BUILD_SECOND_TRACK) {
+           mCurrentPlayer = players.getNext();
+           mGameState = mCurrentPlayer.equals(firstPlayer) ? GameState.NORMAL : GameState.BUILD_SECOND_VILLAGE;
        }
-       Log.d(TAG, "endTurn(): end: current player is "  + currentPlayer.getPlayerID() + " mode is " + gameState.toString());
+       Log.d(TAG, "endTurn(): end: current player is "  + mCurrentPlayer.getPlayerID() + " mode is " + mGameState.toString());
    }
 }

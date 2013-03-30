@@ -24,6 +24,10 @@ public class Widget {
     private Paint mTextPaint;
     private Align mAlign;
 
+    public boolean getVisible() {
+        return mVisible;
+    }
+
     public enum Align {
         Center,
         Right
@@ -122,8 +126,10 @@ public class Widget {
 
     public void handleTap(int x, int y) {
         Log.d(TAG, "handleTap ");
-        if (mBounds.contains(x, y)) {
-            mOnClickListener.onClickListener();
+        if (mVisible) {
+            if (mBounds.contains(x, y)) {
+                mOnClickListener.onClickListener();
+            }
         }
     }
 

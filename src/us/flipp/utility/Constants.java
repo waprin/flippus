@@ -10,5 +10,5 @@ package us.flipp.utility;
 public class Constants {
 
     public static final int TICKS_PER_SECOND = 20;
-    public static final int TICK_PERIOD = 1000 / TICKS_PER_SECOND;
+    public static final int MILLISECONDS_PER_TICK = 1000 / TICKS_PER_SECOND;
 }

@@ -250,8 +250,10 @@ public class ModeGame extends Mode implements ResourceChangeEvent {
                 if (closestPoint == connectedPoint) {
                     Log.e(TAG, "handleTap(): somehow a point was detected as connected to itself");
                 }
-                gameDrawer.setSuggestedTrack(boardState.getCurrentPlayer(), new Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>(closestPoint, connectedPoint));
-                mConfirmWidget.setVisible(true);
+                if (boardState.isLegalTrack(closestPoint, connectedPoint)) {
+                    gameDrawer.setSuggestedTrack(new Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint>(closestPoint, connectedPoint));
+                    mConfirmWidget.setVisible(true);
+                }
                 break;
             }
         }
@@ -285,6 +287,7 @@ public class ModeGame extends Mode implements ResourceChangeEvent {
                 }
                 endTurn();
                 mConfirmWidget.setVisible(false);
+                gameDrawer.setSuggestedTrack(null);
                 break;
         }
     }
@@ -316,7 +319,7 @@ public class ModeGame extends Mode implements ResourceChangeEvent {
     public void notifyOfResourceChange(Resource resource, int amount) {
         int left = mResourceWidgetMap.get(resource).getBounds().left;
         int top = mResourceWidgetMap.get(resource).getBounds().top;
-        Animation resourceIncreaseAnimation = new ResourceIncreaseAnimation(new Vector2i(left, top), 1);
+        Animation resourceIncreaseAnimation = new ResourceIncreaseAnimation(new Vector2i(left, top), 500);
         animations.add(resourceIncreaseAnimation);
     }
 

@@ -5,7 +5,6 @@ import android.graphics.*;
 import android.util.Log;
 import android.util.Pair;
 import us.flipp.R;
-import us.flipp.moding.ModeGame;
 import us.flipp.simulation.LogicalBoard;
 import us.flipp.simulation.Player;
 import us.flipp.simulation.BoardState;
@@ -30,27 +29,25 @@ public class GameDrawer {
     private int gameHeight = -253;
 
     private EnumMap<Player.PlayerID, Paint> mPlayerPaints;
+    private EnumMap<Player.PlayerID, Paint> mPlayerTrackPaints;
 
     private boolean down;
 
     private Paint textPaint;
-    private Paint trackPaint;
 
     private int alphaValue;
 
     private EnumMap<Resource, Bitmap> mResourceBitmaps;
 
+    private Context mContext;
+
     public GameDrawer(Context context, EnumMap<Resource, Bitmap> resourceBitmaps) {
+        mContext = context;
         alphaValue = 255;
 
         textPaint = new Paint();
         textPaint.setARGB(255, 0, 0, 0);
         textPaint.setTextAlign(Paint.Align.CENTER);
-
-        trackPaint = new Paint();
-        trackPaint.setStrokeWidth(2.0f);
-        trackPaint.setARGB(255, 125, 25, 75);
-
 
         nonSelectedPaint = new Paint();
         nonSelectedPaint.setColor(Color.BLACK);
@@ -74,6 +71,27 @@ public class GameDrawer {
         Paint player4Paint = new Paint(playerPaint);
         player4Paint.setColor(context.getResources().getInteger(R.integer.player_4_color));
         mPlayerPaints.put(Player.PlayerID.PLAYER_4, player4Paint);
+
+        mPlayerTrackPaints = new EnumMap<Player.PlayerID, Paint>(Player.PlayerID.class);
+        Paint trackPaint = new Paint();
+        trackPaint.setStrokeCap(Paint.Cap.ROUND);
+        trackPaint.setStrokeWidth(3.0f);
+        trackPaint.setColor(context.getResources().getInteger(R.integer.player_1_color));
+        trackPaint.setAlpha(255);
+
+        mPlayerTrackPaints.put(Player.PlayerID.PLAYER_1, trackPaint);
+        Paint player2TrackPaint = new Paint(trackPaint);
+        player2TrackPaint.setColor(context.getResources().getInteger(R.integer.player_2_color));
+        player2TrackPaint.setAlpha(255);
+        mPlayerTrackPaints.put(Player.PlayerID.PLAYER_2, player2TrackPaint);
+        Paint player3TrackPaint = new Paint(trackPaint);
+        player3TrackPaint.setColor(context.getResources().getInteger(R.integer.player_3_color));
+        player3TrackPaint.setAlpha(255);
+        mPlayerTrackPaints.put(Player.PlayerID.PLAYER_3, player3TrackPaint);
+        Paint player4TrackPaint = new Paint(trackPaint);
+        player4TrackPaint.setColor(context.getResources().getInteger(R.integer.player_4_color));
+        player4TrackPaint.setAlpha(255);
+        mPlayerTrackPaints.put(Player.PlayerID.PLAYER_4, player4TrackPaint);
     }
 
     public void setSuggestedVillage(LogicalBoard.LogicalPoint suggestedVillage) {
@@ -127,6 +145,13 @@ public class GameDrawer {
 //            Log.d(TAG, "drawing game point at " + gamePoint.logicalPoint.getIndex() + " x is " + gamePoint.visualPoint.x + " y is " + gamePoint.visualPoint.y);
         }
 
+        for (BoardState.Track track : boardState.getTracks()) {
+            HexBoard.GamePoint first = hexBoard.getGamePoint(track.first);
+            HexBoard.GamePoint second = hexBoard.getGamePoint(track.second);
+            Paint trackPaint = mPlayerTrackPaints.get(track.player.getPlayerID());
+            canvas.drawLine(first.visualPoint.x, first.visualPoint.y, second.visualPoint.x, second.visualPoint.y, trackPaint);
+        }
+
         if (suggestedVillage != null) {
             HexBoard.GamePoint p = hexBoard.getGamePoint(suggestedVillage);
             //Log.d(TAG, "suggested drawing suggested at " + p.logicalPoint.getIndex() + " x is " + p.visualPoint.x + " y is " + p.visualPoint.y);
@@ -139,6 +164,7 @@ public class GameDrawer {
         if (suggestedTrack != null) {
             HexBoard.GamePoint first = hexBoard.getGamePoint(suggestedTrack.first);
             HexBoard.GamePoint second = hexBoard.getGamePoint(suggestedTrack.second);
+            Paint trackPaint = mPlayerTrackPaints.get(boardState.getCurrentPlayer().getPlayerID());
             canvas.drawLine(first.visualPoint.x, first.visualPoint.y, second.visualPoint.x, second.visualPoint.y, trackPaint);
         }
     }
@@ -197,10 +223,10 @@ public class GameDrawer {
         return hexBoard.getClosestPointToCoords(x, y);
     }
 
-    public void setSuggestedTrack(Player player, Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint> suggestedTrack) {
+    public void setSuggestedTrack(Pair<LogicalBoard.LogicalPoint, LogicalBoard.LogicalPoint> suggestedTrack) {
         Log.d(TAG, "setSuggestedTrack(): begin");
-        Log.d(TAG, "setSuggestedTrack(): first: " + hexBoard.getGamePoint(suggestedTrack.first).visualPoint.x + "," + hexBoard.getGamePoint(suggestedTrack.first).visualPoint.y);// + " second: " + second.visualPoint.x + "," + second.visualPoint.y);
-        Log.d(TAG, "setSuggestedTrack(): second: " + hexBoard.getGamePoint(suggestedTrack.second).visualPoint.x + "," + hexBoard.getGamePoint(suggestedTrack.second).visualPoint.y);// + " second: " + second.visualPoint.x + "," + second.visualPoint.y);
+//        Log.d(TAG, "setSuggestedTrack(): first: " + hexBoard.getGamePoint(suggestedTrack.first).visualPoint.x + "," + hexBoard.getGamePoint(suggestedTrack.first).visualPoint.y);// + " second: " + second.visualPoint.x + "," + second.visualPoint.y);
+//        Log.d(TAG, "setSuggestedTrack(): second: " + hexBoard.getGamePoint(suggestedTrack.second).visualPoint.x + "," + hexBoard.getGamePoint(suggestedTrack.second).visualPoint.y);// + " second: " + second.visualPoint.x + "," + second.visualPoint.y);
         this.suggestedTrack = suggestedTrack;
     }
 

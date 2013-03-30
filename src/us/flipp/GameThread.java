@@ -37,7 +37,7 @@ public class GameThread extends Thread {
             long update_start = System.nanoTime();
             try {
                 this.semaphore.acquire();
-                this.game.tick(Constants.TICK_PERIOD);
+                this.game.tick(Constants.MILLISECONDS_PER_TICK);
                 Canvas canvas = null;
                 try {
                     canvas = surfaceHolder.lockCanvas();
@@ -57,7 +57,7 @@ public class GameThread extends Thread {
             }
 
             long runningTime = System.nanoTime() - update_start;
-            long numeratorTime = Constants.TICK_PERIOD * 1000000L;
+            long numeratorTime = Constants.MILLISECONDS_PER_TICK * 1000000L;
             int sleepTime = (int)((numeratorTime - runningTime) / 1000000L);
            if(sleepTime > 0)
            {

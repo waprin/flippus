@@ -18,10 +18,10 @@ public class ResourceIncreaseAnimation extends Animation {
     private Vector2i mOffset;
     private Paint textPaint;
 
-    public ResourceIncreaseAnimation(Vector2i offset, int seconds) {
+    public ResourceIncreaseAnimation(Vector2i offset, int milliseconds) {
         mOffset = offset;
-
-        mMaxTicks = seconds * Constants.TICKS_PER_SECOND;
+        float seconds = (float) milliseconds / 1000;
+        mMaxTicks = (int) (Constants.TICKS_PER_SECOND * seconds);
         textPaint = new TextPaint();
         textPaint.setARGB(255, 255, 255, 255);
     }
