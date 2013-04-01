@@ -43,4 +43,9 @@ public class Player {
             mResources.put(resource, mResources.get(resource) + resources.get(resource));
         }
     }
+
+    public void increaseResourceCount(Resource resource, int amount) {
+        mResources.put(resource, mResources.get(resource) + amount);
+    }
+
 }

@@ -7,11 +7,20 @@ import us.flipp.utility.CircularLinkedList;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Random;
 
 public class BoardState {
 
     private static final String TAG = BoardState.class.getName();
 
+    public enum BoardEvent {
+        RESOURCE_UPDATE,
+        DICE_ROLL,
+    }
+
+    static public interface EventHandler {
+        public void notify(BoardEvent be, Object[] args);
+    }
 
     public enum GameState {
         BUILD_FIRST_VILLAGE,
@@ -54,9 +63,9 @@ public class BoardState {
     private List<Intersection> mIntersections;
     private List<Track> tracks;
 
-    private List<ResourceChangeEvent> mResourceChangeEvents;
-
     private LogicalBoard.LogicalPoint mLastVillage;
+
+    private EventHandler mEventHandler;
 
     public BoardState() {
        logicalBoard = new LogicalBoard();
@@ -73,18 +82,30 @@ public class BoardState {
 
         this.mGameState = GameState.BUILD_FIRST_VILLAGE;
         this.tracks = new ArrayList<Track>();
-
-        mResourceChangeEvents = new ArrayList<ResourceChangeEvent>();
     }
 
-    public void addResourceChangeEvent(ResourceChangeEvent resourceChangeEvent) {
-        mResourceChangeEvents.add(resourceChangeEvent);
+    public void setEventHandler(EventHandler eventHandler) {
+        mEventHandler = eventHandler;
     }
 
-    private void notifyOfResourceChange(Resource resource, int amount) {
-        for (ResourceChangeEvent rce : mResourceChangeEvents) {
-            rce.notifyOfResourceChange(resource, amount);
+    public int rollDice() {
+        Random random = new Random();
+        int firstRoll = random.nextInt(6) + 1;
+        int secondRoll = random.nextInt(6) + 1;
+        int totalRoll = firstRoll + secondRoll;
+
+        for (Intersection intersection : mIntersections) {
+            for (LogicalBoard.LogicalHex hex : intersection.point.getHexes()) {
+                if (hex.getHexState().getDiceValue() == totalRoll) {
+                    intersection.player.increaseResourceCount(hex.getHexState().getResource(), 1);
+                    mEventHandler.notify(BoardEvent.RESOURCE_UPDATE, new Object[] { hex.getHexState().getResource(), 1});
+                }
+            }
         }
+        return totalRoll;
+    }
+
+    public void startTurn() {
     }
 
     public LogicalBoard getLogicalBoard() {
@@ -144,9 +165,8 @@ public class BoardState {
            mCurrentPlayer.increaseResourceCount(logicalPoint.getStartingResources());
            for (Resource resource : logicalPoint.getStartingResources().keySet()) {
                Log.d(TAG, "buildVillage(): notifying of increase of for resource " + resource.toString());
-               notifyOfResourceChange(resource, 1);
+               mEventHandler.notify(BoardEvent.RESOURCE_UPDATE, new Object[] { resource, 1});
            }
-
        }
    }
 

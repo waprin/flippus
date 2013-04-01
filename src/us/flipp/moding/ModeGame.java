@@ -11,7 +11,7 @@ import us.flipp.simulation.*;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 
-public class ModeGame extends Mode implements ResourceChangeEvent {
+public class ModeGame extends Mode implements BoardState.EventHandler {
 
     static private String TAG = ModeGame.class.getName();
 
@@ -157,7 +157,7 @@ public class ModeGame extends Mode implements ResourceChangeEvent {
         mDebugOverlay.addWidget(mPercentWidget);
 
         animations = new LinkedBlockingDeque<Animation>();
-        boardState.addResourceChangeEvent(this);
+        boardState.setEventHandler(this);
     }
 
     public void updateHighlightedPlayer() {
@@ -264,6 +264,11 @@ public class ModeGame extends Mode implements ResourceChangeEvent {
         mModeWidget.setText(boardState.getGameState().toString());
         updateResourceStock();
         updateHighlightedPlayer();
+        startTurn();
+    }
+
+    public void startTurn() {
+        boardState.startTurn();
     }
 
     private void confirmButtonPressed() {
@@ -315,15 +320,6 @@ public class ModeGame extends Mode implements ResourceChangeEvent {
         }
     }
 
-
-    public void notifyOfResourceChange(Resource resource, int amount) {
-        int left = mResourceWidgetMap.get(resource).getBounds().left;
-        int top = mResourceWidgetMap.get(resource).getBounds().top;
-        Animation resourceIncreaseAnimation = new ResourceIncreaseAnimation(new Vector2i(left, top), 500);
-        animations.add(resourceIncreaseAnimation);
-    }
-
-
     private void updateResourceStock() {
         EnumMap<Resource, Integer> resources = boardState.getCurrentPlayer().getResources();
         for (Resource resource : Resource.values()) {
@@ -345,5 +341,20 @@ public class ModeGame extends Mode implements ResourceChangeEvent {
         canvas.drawBitmap(mResourceBitmaps.get(resource), 0.f, 0.f, null);
         canvas.clipRect(new Rect(0, 0, canvas.getWidth(), canvas.getHeight()), Region.Op.REPLACE);
         return bitmap;
+    }
+
+    @Override
+    public void notify(BoardState.BoardEvent be, Object[] args) {
+        switch(be) {
+            case RESOURCE_UPDATE:
+                Resource resource = (Resource) args[0];
+                int left = mResourceWidgetMap.get(resource).getBounds().left;
+                int top = mResourceWidgetMap.get(resource).getBounds().top;
+                Animation resourceIncreaseAnimation = new ResourceIncreaseAnimation(new Vector2i(left, top), 500);
+                animations.add(resourceIncreaseAnimation);
+                break;
+            case DICE_ROLL:
+                break;
+        }
     }
 }

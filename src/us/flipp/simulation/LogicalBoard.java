@@ -143,6 +143,10 @@ public class LogicalBoard {
             mHexes.add(logicalHex);
         }
 
+        public List<LogicalHex> getHexes() {
+            return mHexes;
+        }
+
         public EnumMap<Resource, Integer> getStartingResources() {
             EnumMap<Resource, Integer> resources = new EnumMap<Resource, Integer>(Resource.class);
             for (LogicalHex hex : mHexes) {

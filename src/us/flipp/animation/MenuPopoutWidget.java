@@ -24,7 +24,6 @@ public class MenuPopoutWidget {
     private Paint greenPaint;
     private Paint yellowPaint;
 
-
     private Rect buildTopRect;
     private Rect cardsTopLeftRect;
     private Rect tradeTopRightRect;
